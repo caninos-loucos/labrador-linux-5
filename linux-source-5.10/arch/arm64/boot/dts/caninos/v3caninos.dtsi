@@ -714,6 +714,7 @@
 				phy0: ethernet-phy@0 {
 					reg = <0x1>;
 					device_type = "ethernet-phy";
+					eee-broken-100tx;
 				};
 			};
 		};

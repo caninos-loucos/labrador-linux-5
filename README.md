@@ -34,8 +34,8 @@ After installing these tools, clone this repository to your computer.
  Then, navigate to its main directory and execute its makefile.
 
 ```
-$ git clone https://github.com/caninos-loucos/labrador-linux-6.git
-$ cd labrador-linux-6
+$ git clone https://github.com/caninos-loucos/labrador-linux-5.git
+$ cd labrador-linux-5
 $ make all
 $ make all32
 ```
