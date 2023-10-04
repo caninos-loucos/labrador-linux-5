@@ -23,290 +23,95 @@
 #include <linux/mfd/core.h>
 #include <linux/mfd/atc260x/atc260x.h>
 
-#define CANINOS_KEY_POLLING_DELAY_MS (100)
+#define PMU_SYS_CTL0_USB_WK_EN                BIT(15)
+#define PMU_SYS_CTL0_WALL_WK_EN               BIT(14)
+#define PMU_SYS_CTL0_ONOFF_LONG_WK_EN         BIT(13)
+#define PMU_SYS_CTL0_ONOFF_SHORT_WK_EN        BIT(12)
+#define PMU_SYS_CTL0_SGPIOIRQ_WK_EN           BIT(11)
+#define PMU_SYS_CTL0_RESTART_EN               BIT(10)
+#define PMU_SYS_CTL0_REM_CON_WK_EN            BIT(9)
+#define PMU_SYS_CTL0_ALARM_WK_EN              BIT(8)
+#define PMU_SYS_CTL0_HDSW_WK_EN               BIT(7)
+#define PMU_SYS_CTL0_RESET_WK_EN              BIT(6)
+#define PMU_SYS_CTL0_IR_WK_EN                 BIT(5)
+#define PMU_SYS_CTL0_VBUS_WK_TH(x)            (((x) & 0x3) << 3)
+#define PMU_SYS_CTL0_WALL_WK_TH(x)            (((x) & 0x3) << 1)
+#define PMU_SYS_CTL0_ONOFF_MUXKEY_EN          BIT(0)
+
+#define PMU_SYS_CTL0_WK_TH_VAL_405 (0x0)
+#define PMU_SYS_CTL0_WK_TH_VAL_420 (0x1)
+#define PMU_SYS_CTL0_WK_TH_VAL_435 (0x2)
+#define PMU_SYS_CTL0_WK_TH_VAL_450 (0x3)
+
+#define PMU_SYS_CTL1_USB_WK_FLAG              BIT(15)
+#define PMU_SYS_CTL1_WALL_WK_FLAG             BIT(14)
+#define PMU_SYS_CTL1_ONOFF_LONG_WK_FLAG       BIT(13)
+#define PMU_SYS_CTL1_ONOFF_SHORT_WK_FLAG      BIT(12)
+#define PMU_SYS_CTL1_SGPIOIRQ_WK_FLAG         BIT(11)
+#define PMU_SYS_CTL1_ONOFF_PRESS_RST_IRQ_PD   BIT(10)
+#define PMU_SYS_CTL1_REM_CON_WK_FLAG          BIT(9)
+#define PMU_SYS_CTL1_ALARM_WK_FLAG            BIT(8)
+#define PMU_SYS_CTL1_HDSW_WK_FLAG             BIT(7)
+#define PMU_SYS_CTL1_RESET_WK_FLAG            BIT(6)
+#define PMU_SYS_CTL1_IR_WK_FLAG               BIT(5)
+#define PMU_SYS_CTL1_LOW_BAT_S4(x)            (((x) & 0x3) << 3)
+#define PMU_SYS_CTL1_LOW_BAT_S4_EN            BIT(2)
+#define PMU_SYS_CTL1_ENRTCOSC                 BIT(1)
+#define PMU_SYS_CTL1_EN_S1                    BIT(0)
+
+#define PMU_SYS_CTL1_LOW_BAT_VAL_29 (0x0)
+#define PMU_SYS_CTL1_LOW_BAT_VAL_30 (0x1)
+#define PMU_SYS_CTL1_LOW_BAT_VAL_31 (0x2)
+#define PMU_SYS_CTL1_LOW_BAT_VAL_33 (0x3)
+
+#define PMU_SYS_CTL2_ONOFF_PRESS              BIT(15)
+#define PMU_SYS_CTL2_ONOFF_SHORT_PRESS        BIT(14)
+#define PMU_SYS_CTL2_ONOFF_LONG_PRESS         BIT(13)
+#define PMU_SYS_CTL2_ONOFF_INT_EN             BIT(12)
+#define PMU_SYS_CTL2_ONOFF_PRESS_TIME(x)      (((x) & 0x3) << 10)
+#define PMU_SYS_CTL2_ONOFF_PRESS_RST_EN       BIT(9)
+#define PMU_SYS_CTL2_ONOFF_RESET_TIME_SEL(x)  (((x) & 0x3) << 7)
+#define PMU_SYS_CTL2_S2_TIMER_EN              BIT(6)
+#define PMU_SYS_CTL2_S2_TIMER(x)              (((x) & 0x7) << 3)
+#define PMU_SYS_CTL2_ONOFF_PRESS_PD           BIT(2)
+#define PMU_SYS_CTL2_ONOFF_PRESS_INT_EN       BIT(1)
+#define PMU_SYS_CTL2_PMU_A_EN                 BIT(0)
 
 static struct atc260x_dev *pmic = NULL;
-static struct input_dev *baseboard_keys_dev = NULL;
-static struct delayed_work key_polling_work;
-static int userkey_gpio = -1; /* negative gpio number is always invalid */
-static bool userkey_active_low = false;
-static void atc260x_poweroff(void);
 
-static int caninos_userkey_gpio_get_value(void)
+static void atc260x_restart(enum reboot_mode reboot_mode, const char *cmd)
 {
-	int debounce = 5;
-	int value;
+	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL0, 0xE04B | PMU_SYS_CTL0_RESTART_EN);
+	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL1, 0xE);
 	
-	if (gpio_is_valid(userkey_gpio)) {
-		return -EINVAL;
+	for(;;) { /* must never return */
+		cpu_relax();
 	}
-	
-	for (;;)
-	{
-		value = gpio_get_value(userkey_gpio);
-		
-		if (value < 0) {
-			return -EINVAL;
-		}
-		else if (value > 0) {
-			value = (userkey_active_low) ? 0 : 1;
-		}
-		else {
-			value = (userkey_active_low) ? 1 : 0;
-		}
-		
-		debounce--;
-		
-		if (debounce > 0) {
-			usleep_range(1000, 1500);
-		}
-		else {
-			break;
-		}
-	}
-	return value;
-}
-
-static void caninos_key_polling_worker(struct work_struct *work)
-{
-	const unsigned long delay = msecs_to_jiffies(CANINOS_KEY_POLLING_DELAY_MS);
-	int ret;
-	
-	ret = atc260x_reg_read(pmic, ATC2603C_PMU_SYS_CTL2);
-	
-	if (ret < 0) {
-		goto quit_worker;
-	}
-	
-	/* ONOFF short press */
-	if (ret & BIT(14))
-	{
-		ret = atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL2, ret);
-		
-		if (ret >= 0)
-		{
-			input_report_key(baseboard_keys_dev, KEY_POWER, 1);
-			input_sync(baseboard_keys_dev);
-			input_report_key(baseboard_keys_dev, KEY_POWER, 0);
-			input_sync(baseboard_keys_dev);
-		}
-	}
-	
-	/* ONOFF long press */
-	if (ret & BIT(13))
-	{
-		ret = atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL2, ret);
-		
-		if (ret >= 0)
-		{
-			/* do a hard shutdown (never returns!)*/
-			atc260x_poweroff();
-		}
-	}
-	
-	ret = caninos_userkey_gpio_get_value();
-	
-	if (ret > 0)
-	{
-		input_report_key(baseboard_keys_dev, KEY_PROG1, 1);
-		input_sync(baseboard_keys_dev);
-		input_report_key(baseboard_keys_dev, KEY_PROG1, 0);
-		input_sync(baseboard_keys_dev);
-	}
-	
-quit_worker:
-	queue_delayed_work(system_long_wq, &key_polling_work, delay);
-}
-
-static void caninos_userkey_gpio_probe_and_request(struct device *dev)
-{
-	struct device_node *np = dev->of_node;
-	enum of_gpio_flags flags;
-	
-	userkey_gpio = of_get_named_gpio_flags(np, "userkey-gpios", 0, &flags);
-	
-	if (gpio_is_valid(userkey_gpio))
-	{
-		if (devm_gpio_request(dev, userkey_gpio, "userkey_gpio")) {
-			userkey_gpio = -1;
-		}
-		else
-		{
-			gpio_direction_input(userkey_gpio);
-			userkey_active_low = (flags == OF_GPIO_ACTIVE_LOW);
-		}
-	}
-}
-
-static int atc260x_create_input_device(void)
-{
-	const unsigned long delay = msecs_to_jiffies(CANINOS_KEY_POLLING_DELAY_MS);
-	int ret;
-	
-	ret = atc260x_reg_read(pmic, ATC2603C_PMU_SYS_CTL2);
-	
-	if (ret < 0) {
-		return ret;
-	}
-	
-	/* clear pending key interrupts */
-	ret = atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL2, ret | 0x6000);
-	
-	if (ret < 0) {
-		return ret;
-	}
-	
-	ret = atc260x_reg_read(pmic, ATC2603C_PMU_SYS_CTL2);
-	
-	if (ret < 0) {
-		return ret;
-	}
-	
-	/* enable ONOFF interrupts */
-	ret = atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL2, ret | 0x1000);
-	
-	if (ret < 0) {
-		return ret;
-	}
-	
-	baseboard_keys_dev = input_allocate_device();
-	
-	if (!baseboard_keys_dev) {
-		return -ENOMEM;
-	}
-	
-	/*
-	This driver uses the Event Interface (Documentation/input/input.txt)
-	A user should read the file /dev/input/eventX in C, Python, ...
-	For every key press the following binary structure will be returned:
-	
-	struct input_event {
-		struct timeval time;
-		unsigned short type;
-		unsigned short code;
-		unsigned int value;
-	};
-	*/
-	
-	/* power key */
-	input_set_capability(baseboard_keys_dev, EV_KEY, KEY_POWER);
-	
-	/* general purpose user configurable key */
-	input_set_capability(baseboard_keys_dev, EV_KEY, KEY_PROG1);
-	
-	ret = input_register_device(baseboard_keys_dev);
-	
-	if (ret)
-	{
-		input_free_device(baseboard_keys_dev);
-		baseboard_keys_dev = NULL;
-		return ret;
-	}
-	
-	INIT_DELAYED_WORK(&key_polling_work, caninos_key_polling_worker);
-	queue_delayed_work(system_long_wq, &key_polling_work, delay);
-	return 0;
-}
-
-static void atc260x_destroy_input_device(void)
-{
-	if (baseboard_keys_dev)
-	{
-		cancel_delayed_work_sync(&key_polling_work);
-		input_unregister_device(baseboard_keys_dev);
-		baseboard_keys_dev = NULL;
-	}
-}
-
-static int atc260x_poweroff_setup(void)
-{
-	// set ATC2603C_PMU_SYS_CTL0 value
-	//  0 - USB_WK_EN
-	//  0 - WALL_WK_EN
-	//  1 - ONOFF_LONG_WK_EN
-	//  1 - ONOFF_SHORT_WK_EN
-	//  0 - SGPIOIRQ_WK_EN
-	//  0 - RESTART_EN
-	//  0 - REM_CON_WK_EN
-	//  0 - ALARM_WK_EN
-	//  1 - HDSW_WK_EN
-	//  0 - RESET_WK_E
-	//  0 - IR_WK_EN
-	// 01 - VBUS_WK_TH (4.2V)
-	// 01 - WALL_WK_TH (4.2V)
-	//  1 - ONOFF_MUXKEY_EN
-	
-	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL0, 0x304B);
-	
-	// set ATC2603C_PMU_SYS_CTL1 value
-	// 1111
-	
-	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL1, 0xF);
-	
-	// set ATC2603C_PMU_SYS_CTL2 value
-	//   0 - ONOFF_PRESS
-	//   1 - ONOFF_SHORT_PRESS (1 to clear)
-	//   1 - ONOFF_LONG_PRESS  (1 to clear)
-	//   0 - ONOFF_INT_EN
-	//  01 - ONOFF_PRESS_TIME
-	//   1 - ONOFF_PRESS_Reset_EN
-	//  00 - ONOFF_RESET_TIME_SEL
-	//   0 - S2_TIMER_EN
-	// 000 - S2TIMER
-	//   0 - ONOFF_PRESS_PD
-	//   0 - ONOFF_PRESS_INT_EN
-	//   0 - PMU_A_EN
-	
-	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL2, 0x6680);
-	
-	// set ATC2603C_PMU_SYS_CTL3 value
-	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL3, 0x80);
-	
-	// set ATC2603C_PMU_SYS_CTL4 value
-	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL4, 0x80);
-	
-	// set ATC2603C_PMU_SYS_CTL5 value
-	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL5, 0x180);
-	
-	return 0;
 }
 
 static void atc260x_poweroff(void)
 {
-	int ret;
+	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL1, 0xE);
 	
-	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL2, 0x6680);
-	
-	ret = atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL1, 0x80 | BIT(14));
-	
-	if (ret < 0) {
-		pr_err("system poweroff failed.\n");
-	}
 	for(;;) { /* must never return */
 		cpu_relax();
 	}
 }
 
-static void atc260x_restart(enum reboot_mode reboot_mode, const char *cmd)
+static int atc260x_system_control_setup(void)
 {
-	int ret;
-	
-	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL2, 0x6680);
-	
-	ret = atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL0, 0x304B | BIT(10));
-	
-	if (ret < 0) {
-		pr_err("system restart failed.\n");
-	}
-	for(;;) { /* must never return */
-		cpu_relax();
-	}
+	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL0, 0xE04B);
+	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL1, 0xE | PMU_SYS_CTL1_EN_S1);
+	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL2, 0x680);
+	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL3, 0x80);
+	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL4, 0x80);
+	atc260x_reg_write(pmic, ATC2603C_PMU_SYS_CTL5, 0x180);
+	return 0;
 }
 
 static int atc2603c_platform_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
-	int ret;
 	
 	pmic = dev_get_drvdata(dev->parent);
 	
@@ -314,26 +119,12 @@ static int atc2603c_platform_probe(struct platform_device *pdev)
 		return -EINVAL;
 	}
 	
-	atc260x_poweroff_setup();
+	atc260x_system_control_setup();
 	
 	pm_power_off = atc260x_poweroff;
 	arm_pm_restart = atc260x_restart;
 	
-	caninos_userkey_gpio_probe_and_request(dev);
-	
-	ret = atc260x_create_input_device();
-	
-	if (ret) {
-		dev_err(dev, "could not create baseboard input device.\n");
-	}
-	
 	dev_info(dev, "probe finished\n");
-	return 0;
-}
-
-static int atc2603c_platform_remove(struct platform_device *pdev)
-{
-	atc260x_destroy_input_device();
 	return 0;
 }
 
@@ -345,7 +136,6 @@ MODULE_DEVICE_TABLE(of, atc2603c_poweroff_of_match);
 
 static struct platform_driver atc2603c_platform_driver = {
 	.probe = atc2603c_platform_probe,
-	.remove = atc2603c_platform_remove,
 	.driver = {
 		.name = "atc2603c-poweroff",
 		.owner = THIS_MODULE,
