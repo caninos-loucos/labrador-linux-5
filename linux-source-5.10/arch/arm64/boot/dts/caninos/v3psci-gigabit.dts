@@ -31,5 +31,4 @@
 
 &eth0 {
 	phy-mode = "rgmii";
-	max-speed = <1000>;
 };
