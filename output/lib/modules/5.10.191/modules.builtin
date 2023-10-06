@@ -265,6 +265,7 @@ kernel/drivers/mfd/mfd-core.ko
 kernel/drivers/mfd/atc260x/atc260x-i2c.ko
 kernel/drivers/mfd/atc260x/atc260x-auxadc.ko
 kernel/drivers/mfd/atc260x/atc260x-poweroff.ko
+kernel/drivers/mfd/atc260x/atc260x-battery.ko
 kernel/drivers/dax/dax.ko
 kernel/drivers/mtd/mtd.ko
 kernel/drivers/mtd/parsers/cmdlinepart.ko

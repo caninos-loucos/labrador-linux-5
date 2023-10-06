@@ -111,7 +111,7 @@ static ssize_t adc_show(struct kobject *kobj, struct kobj_attribute *attr,
     }
     else if (strcmp(attr->attr.name, "wallv") == 0)
     {   
-        reg    = ATC2603A_PMU_WALLVADC;
+        reg    = ATC2603C_PMU_WALLVADC;
     	mult   = 1875;
     	shift  = 8;
     	offset = 0;
@@ -119,7 +119,7 @@ static ssize_t adc_show(struct kobject *kobj, struct kobj_attribute *attr,
     }
     else if (strcmp(attr->attr.name, "walli") == 0)
     {
-        reg    = ATC2603A_PMU_WALLIADC;
+        reg    = ATC2603C_PMU_WALLIADC;
     	mult   = 1500;
     	shift  = 10;
     	offset = 0;
@@ -127,7 +127,7 @@ static ssize_t adc_show(struct kobject *kobj, struct kobj_attribute *attr,
     }
     else if (strcmp(attr->attr.name, "chgi") == 0)
     {
-        reg    = ATC2603A_PMU_CHGIADC;
+        reg    = ATC2603C_PMU_CHGIADC;
     	mult   = 2000;
     	shift  = 10;
     	offset = 0;
@@ -289,7 +289,7 @@ static int atc2603c_platform_remove(struct platform_device *pdev)
 		adc_kobj = NULL;
 	}
 	
-    pmic = NULL;
+	pmic = NULL;
 	return 0;
 }
 

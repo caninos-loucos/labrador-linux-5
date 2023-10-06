@@ -58,6 +58,10 @@ static const struct mfd_cell sc_atc2603c_cells[] = {
 	.name = "atc2603c-poweroff",
 	.of_compatible = "actions,atc2603c-poweroff",
 	},
+	{
+	.name = "atc2603c-battery",
+	.of_compatible = "actions,atc2603c-battery",
+	}
 };
 
 static int atc260x_i2c_probe(struct i2c_client *i2c,

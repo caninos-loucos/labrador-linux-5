@@ -578,6 +578,11 @@
 					userkey-gpios = <&gpiob 9 GPIO_ACTIVE_LOW>;
 					status = "okay";
 				};
+				
+				atc260x_battery: atc260x-battery {
+					compatible = "actions,atc2603c-battery";
+					status = "okay";
+				};
 			};
 		};
 		
