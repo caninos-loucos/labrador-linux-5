@@ -722,6 +722,7 @@
 			mdio {
 				#address-cells = <1>;
 				#size-cells = <0>;
+				compatible = "snps,dwmac-mdio";
 				
 				phy0: ethernet-phy@0 {
 					reg = <0x1>;
