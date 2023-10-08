@@ -32,6 +32,8 @@
 		i2c1 = &i2c1;
 		i2c2 = &i2c2;
 		i2c3 = &i2c3;
+		
+		ethernet0 = &emac;
 	};
 	
 	memory {
@@ -676,29 +678,22 @@
 			status = "okay";
 		};
 		
-		ethernet: ethernet@b0310000 {
+		emac: ethernet@b0310000 {
 			compatible = "caninos,ethernet-k5";
 			reg = <0xb0310000 0x10000>;
-			
 			interrupts = <GIC_SPI 0 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&cmu CLK_ETHERNET>, <&cmu CLK_RMII_REF>;
+			clock-names = "eth", "rmii";
+			resets = <&rst RST_ETHERNET>;
+			reset-names = "ethernet";
 			
 			pinctrl-names = "default";
 			pinctrl-0 = <&eth_state_rmii>;
 			
-			clocks = <&cmu CLK_ETHERNET>, <&cmu CLK_RMII_REF>;
-			clock-names = "eth", "rmii";
-			
-			resets = <&rst RST_ETHERNET>;
-			reset-names = "ethernet";
-			
 			phy-power-gpio = <&gpiob 11 GPIO_ACTIVE_HIGH>;
 			phy-reset-gpio = <&gpiod 31 GPIO_ACTIVE_HIGH>;
-			
-			phy-mode = "rmii";
 			phy-handle = <&phy0>;
-			
-			#address-cells = <1>;
-			#size-cells = <0>;
+			phy-mode = "rmii";
 			
 			status = "okay";
 			

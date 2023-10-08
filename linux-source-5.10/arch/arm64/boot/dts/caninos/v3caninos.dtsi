@@ -33,7 +33,7 @@
 		i2c2 = &i2c2;
 		i2c3 = &i2c3;
 		
-		ethernet0 = &eth0;
+		ethernet0 = &emac;
 	};
 	
 	reserved-memory {
@@ -111,6 +111,13 @@
 		             <GIC_PPI 11 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>,
 		             <GIC_PPI 10 (GIC_CPU_MASK_SIMPLE(4) | IRQ_TYPE_LEVEL_LOW)>;
 		clock-frequency = <24000000>;
+	};
+	
+	clk25m: oscillator {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <25000000>;
+		clock-output-names = "clk25m";
 	};
 	
 	soc {
@@ -684,50 +691,30 @@
 			status = "disabled";
 		};
 		
-		eth0: ethernet@e0220000 {
-			compatible = "caninos,k7-gmac", "snps,dwmac";
+		emac: ethernet@e0220000 {
+			compatible = "caninos,k7-gmac";
 			reg = <0x0 0xe0220000 0 0x2000>;
-			
 			interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "macirq";
-			
-			clocks = <&cmu CLK_ETHERNET>, <&cmu CLK_RMII_REF>;
-			clock-names = "stmmaceth", "ref";
-			
+			clocks = <&clk25m>, <&cmu CLK_ETHERNET>, <&cmu CLK_RMII_REF>;
+			clock-names = "stmmaceth", "eth", "rmii";
 			resets = <&rst RST_ETHERNET>;
 			reset-names = "stmmaceth";
 			
-			rx-fifo-depth = <16384>;
-			tx-fifo-depth = <16384>;
-			max-frame-size = <1518>;
-			
-			snps,force_sf_dma_mode = <0>;
-			snps,force_thresh_dma_mode = <1>;
-			
 			phy-power-gpio = <&gpiob 11 GPIO_ACTIVE_HIGH>;
 			phy-reset-gpio = <&gpiod 31 GPIO_ACTIVE_HIGH>; 
-			
-			phy-mode = "rmii";
 			phy-handle = <&phy0>;
 			
-			pinctrl-names = "rmii", "rgmii";
-			pinctrl-0 = <&eth_state_rmii>;
-			pinctrl-1 = <&eth_state_rgmii>;
-			
-			#address-cells = <1>;
-			#size-cells = <0>;
-			
-			status = "okay";
+			status = "disabled";
 			
 			mdio {
+				compatible = "snps,dwmac-mdio";
 				#address-cells = <1>;
 				#size-cells = <0>;
-				compatible = "snps,dwmac-mdio";
 				
 				phy0: ethernet-phy@0 {
 					reg = <0x1>;
 					device_type = "ethernet-phy";
-					eee-broken-100tx;
 				};
 			};
 		};

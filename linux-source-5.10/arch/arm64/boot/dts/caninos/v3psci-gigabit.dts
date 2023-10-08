@@ -29,6 +29,9 @@
 	};
 };
 
-&eth0 {
+&emac {
+	pinctrl-names = "default";
+	pinctrl-0 = <&eth_state_rgmii>;
 	phy-mode = "rgmii";
+	status = "okay";
 };

@@ -160,7 +160,6 @@ kernel/drivers/spi/spi-gpio.ko: kernel/drivers/spi/spi-bitbang.ko
 kernel/drivers/spi/spi-sc18is602.ko:
 kernel/drivers/spi/spi-slave-time.ko:
 kernel/drivers/spi/spi-slave-system-control.ko:
-kernel/drivers/net/phy/phylink.ko:
 kernel/drivers/net/phy/sfp.ko: kernel/drivers/net/mdio/mdio-i2c.ko
 kernel/drivers/net/phy/amd.ko:
 kernel/drivers/net/phy/aquantia.ko:
@@ -205,18 +204,17 @@ kernel/drivers/net/mdio/mdio-mscc-miim.ko:
 kernel/drivers/net/mdio/mdio-mux.ko:
 kernel/drivers/net/mdio/mdio-mux-gpio.ko: kernel/drivers/net/mdio/mdio-mux.ko
 kernel/drivers/net/mdio/mdio-mux-mmioreg.ko: kernel/drivers/net/mdio/mdio-mux.ko
-kernel/drivers/net/pcs/pcs-xpcs.ko:
-kernel/drivers/net/dsa/b53/b53_common.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/drivers/net/dsa/mv88e6xxx/mv88e6xxx.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/drivers/net/dsa/bcm-sf2.ko: kernel/drivers/net/dsa/b53/b53_common.ko kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/drivers/net/dsa/dsa_loop.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/drivers/net/dsa/mt7530.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/drivers/net/dsa/mv88e6060.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/drivers/net/dsa/qca8k.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/drivers/net/dsa/realtek-smi.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/drivers/net/dsa/lan9303-core.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/drivers/net/dsa/lan9303_i2c.ko: kernel/drivers/net/dsa/lan9303-core.ko kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/drivers/net/dsa/lan9303_mdio.ko: kernel/drivers/net/dsa/lan9303-core.ko kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/drivers/net/dsa/b53/b53_common.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/drivers/net/dsa/mv88e6xxx/mv88e6xxx.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/drivers/net/dsa/bcm-sf2.ko: kernel/drivers/net/dsa/b53/b53_common.ko kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/drivers/net/dsa/dsa_loop.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/drivers/net/dsa/mt7530.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/drivers/net/dsa/mv88e6060.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/drivers/net/dsa/qca8k.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/drivers/net/dsa/realtek-smi.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/drivers/net/dsa/lan9303-core.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/drivers/net/dsa/lan9303_i2c.ko: kernel/drivers/net/dsa/lan9303-core.ko kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/drivers/net/dsa/lan9303_mdio.ko: kernel/drivers/net/dsa/lan9303-core.ko kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
 kernel/drivers/net/ethernet/hisilicon/hix5hd2_gmac.ko:
 kernel/drivers/net/ethernet/hisilicon/hip04_eth.ko:
 kernel/drivers/net/ethernet/hisilicon/hns_mdio.ko:
@@ -230,21 +228,12 @@ kernel/drivers/net/ethernet/mellanox/mlxsw/mlxsw_i2c.ko: kernel/drivers/net/ethe
 kernel/drivers/net/ethernet/mellanox/mlxsw/mlxsw_minimal.ko: kernel/drivers/net/ethernet/mellanox/mlxsw/mlxsw_i2c.ko kernel/drivers/net/ethernet/mellanox/mlxsw/mlxsw_core.ko kernel/drivers/net/ethernet/mellanox/mlxfw/mlxfw.ko
 kernel/drivers/net/ethernet/mellanox/mlxfw/mlxfw.ko:
 kernel/drivers/net/ethernet/micrel/ks8842.ko:
-kernel/drivers/net/ethernet/micrel/ks8851_common.ko: kernel/drivers/misc/eeprom/eeprom_93cx6.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/ethernet/micrel/ks8851_par.ko: kernel/drivers/net/ethernet/micrel/ks8851_common.ko kernel/drivers/misc/eeprom/eeprom_93cx6.ko kernel/drivers/net/mii.ko
+kernel/drivers/net/ethernet/micrel/ks8851_common.ko: kernel/drivers/misc/eeprom/eeprom_93cx6.ko
+kernel/drivers/net/ethernet/micrel/ks8851_par.ko: kernel/drivers/net/ethernet/micrel/ks8851_common.ko kernel/drivers/misc/eeprom/eeprom_93cx6.ko
 kernel/drivers/net/ethernet/mscc/mscc_ocelot_switch_lib.ko: kernel/drivers/ptp/ptp.ko kernel/drivers/pps/pps_core.ko
 kernel/drivers/net/ethernet/mscc/mscc_ocelot.ko: kernel/drivers/net/ethernet/mscc/mscc_ocelot_switch_lib.ko kernel/drivers/ptp/ptp.ko kernel/drivers/pps/pps_core.ko
-kernel/drivers/net/ethernet/smsc/smc91x.ko: kernel/drivers/net/mii.ko
+kernel/drivers/net/ethernet/smsc/smc91x.ko:
 kernel/drivers/net/ethernet/smsc/smsc911x.ko:
-kernel/drivers/net/ethernet/stmicro/stmmac/stmmac.ko: kernel/drivers/net/pcs/pcs-xpcs.ko kernel/drivers/net/phy/phylink.ko kernel/drivers/ptp/ptp.ko kernel/drivers/pps/pps_core.ko
-kernel/drivers/net/ethernet/stmicro/stmmac/stmmac-platform.ko: kernel/drivers/net/ethernet/stmicro/stmmac/stmmac.ko kernel/drivers/net/pcs/pcs-xpcs.ko kernel/drivers/net/phy/phylink.ko kernel/drivers/ptp/ptp.ko kernel/drivers/pps/pps_core.ko
-kernel/drivers/net/ethernet/stmicro/stmmac/dwmac-dwc-qos-eth.ko: kernel/drivers/net/ethernet/stmicro/stmmac/stmmac-platform.ko kernel/drivers/net/ethernet/stmicro/stmmac/stmmac.ko kernel/drivers/net/pcs/pcs-xpcs.ko kernel/drivers/net/phy/phylink.ko kernel/drivers/ptp/ptp.ko kernel/drivers/pps/pps_core.ko
-kernel/drivers/net/ethernet/stmicro/stmmac/dwmac-generic.ko: kernel/drivers/net/ethernet/stmicro/stmmac/stmmac-platform.ko kernel/drivers/net/ethernet/stmicro/stmmac/stmmac.ko kernel/drivers/net/pcs/pcs-xpcs.ko kernel/drivers/net/phy/phylink.ko kernel/drivers/ptp/ptp.ko kernel/drivers/pps/pps_core.ko
-kernel/drivers/net/ethernet/stmicro/stmmac/dwmac-caninos.ko: kernel/drivers/net/ethernet/stmicro/stmmac/stmmac-platform.ko kernel/drivers/net/ethernet/stmicro/stmmac/stmmac.ko kernel/drivers/net/pcs/pcs-xpcs.ko kernel/drivers/net/phy/phylink.ko kernel/drivers/ptp/ptp.ko kernel/drivers/pps/pps_core.ko
-kernel/drivers/net/ethernet/via/via-velocity.ko:
-kernel/drivers/net/ethernet/wiznet/w5100.ko:
-kernel/drivers/net/ethernet/wiznet/w5300.ko:
-kernel/drivers/net/ethernet/synopsys/dwc-xlgmac.ko:
 kernel/drivers/net/wan/hdlc.ko:
 kernel/drivers/net/wan/hdlc_raw.ko: kernel/drivers/net/wan/hdlc.ko
 kernel/drivers/net/wan/hdlc_raw_eth.ko: kernel/drivers/net/wan/hdlc.ko
@@ -304,7 +293,7 @@ kernel/drivers/net/wireless/ti/wl1251/wl1251_sdio.ko: kernel/drivers/net/wireles
 kernel/drivers/net/wireless/ti/wl18xx/wl18xx.ko: kernel/drivers/net/wireless/ti/wlcore/wlcore.ko kernel/net/mac80211/mac80211.ko kernel/net/wireless/cfg80211.ko
 kernel/drivers/net/wireless/zydas/zd1211rw/zd1211rw.ko: kernel/net/mac80211/mac80211.ko kernel/net/wireless/cfg80211.ko
 kernel/drivers/net/wireless/zydas/zd1201.ko: kernel/net/wireless/cfg80211.ko
-kernel/drivers/net/wireless/rndis_wlan.ko: kernel/drivers/net/usb/rndis_host.ko kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko kernel/net/wireless/cfg80211.ko kernel/drivers/net/mii.ko
+kernel/drivers/net/wireless/rndis_wlan.ko: kernel/drivers/net/usb/rndis_host.ko kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko kernel/net/wireless/cfg80211.ko
 kernel/drivers/net/wireless/mac80211_hwsim.ko: kernel/net/mac80211/mac80211.ko kernel/net/wireless/cfg80211.ko
 kernel/drivers/net/bonding/bonding.ko:
 kernel/drivers/net/ipvlan/ipvlan.ko: kernel/net/ipv6/ipv6.ko
@@ -314,7 +303,6 @@ kernel/drivers/net/eql.ko:
 kernel/drivers/net/macsec.ko:
 kernel/drivers/net/macvlan.ko:
 kernel/drivers/net/macvtap.ko: kernel/drivers/net/macvlan.ko kernel/drivers/net/tap.ko
-kernel/drivers/net/mii.ko:
 kernel/drivers/net/netconsole.ko:
 kernel/drivers/net/team/team.ko:
 kernel/drivers/net/tun.ko:
@@ -361,39 +349,39 @@ kernel/drivers/net/wimax/i2400m/i2400m.ko: kernel/net/wimax/wimax.ko
 kernel/drivers/net/wimax/i2400m/i2400m-usb.ko: kernel/drivers/net/wimax/i2400m/i2400m.ko kernel/net/wimax/wimax.ko
 kernel/drivers/net/usb/catc.ko:
 kernel/drivers/net/usb/kaweth.ko:
-kernel/drivers/net/usb/pegasus.ko: kernel/drivers/net/mii.ko
+kernel/drivers/net/usb/pegasus.ko:
 kernel/drivers/net/usb/rtl8150.ko:
-kernel/drivers/net/usb/r8152.ko: kernel/drivers/net/mii.ko
+kernel/drivers/net/usb/r8152.ko:
 kernel/drivers/net/usb/lan78xx.ko:
-kernel/drivers/net/usb/asix.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/ax88179_178a.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/cdc_ether.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/cdc_eem.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/dm9601.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/sr9700.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/sr9800.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/smsc75xx.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/smsc95xx.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/gl620a.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/net1080.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/plusb.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/rndis_host.ko: kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/cdc_subset.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/zaurus.ko: kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/mcs7830.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/usbnet.ko: kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/int51x1.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
+kernel/drivers/net/usb/asix.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/ax88179_178a.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/cdc_ether.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/cdc_eem.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/dm9601.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/sr9700.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/sr9800.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/smsc75xx.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/smsc95xx.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/gl620a.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/net1080.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/plusb.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/rndis_host.ko: kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/cdc_subset.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/zaurus.ko: kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/mcs7830.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/usbnet.ko:
+kernel/drivers/net/usb/int51x1.ko: kernel/drivers/net/usb/usbnet.ko
 kernel/drivers/net/usb/cdc-phonet.ko: kernel/net/phonet/phonet.ko
-kernel/drivers/net/usb/kalmia.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
+kernel/drivers/net/usb/kalmia.ko: kernel/drivers/net/usb/usbnet.ko
 kernel/drivers/net/usb/ipheth.ko:
-kernel/drivers/net/usb/sierra_net.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/cx82310_eth.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/cdc_ncm.ko: kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/huawei_cdc_ncm.ko: kernel/drivers/usb/class/cdc-wdm.ko kernel/drivers/net/usb/cdc_ncm.ko kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/lg-vl600.ko: kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/qmi_wwan.ko: kernel/drivers/usb/class/cdc-wdm.ko kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/cdc_mbim.ko: kernel/drivers/usb/class/cdc-wdm.ko kernel/drivers/net/usb/cdc_ncm.ko kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
-kernel/drivers/net/usb/ch9200.ko: kernel/drivers/net/usb/usbnet.ko kernel/drivers/net/mii.ko
+kernel/drivers/net/usb/sierra_net.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/cx82310_eth.ko: kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/cdc_ncm.ko: kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/huawei_cdc_ncm.ko: kernel/drivers/usb/class/cdc-wdm.ko kernel/drivers/net/usb/cdc_ncm.ko kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/lg-vl600.ko: kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/qmi_wwan.ko: kernel/drivers/usb/class/cdc-wdm.ko kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/cdc_mbim.ko: kernel/drivers/usb/class/cdc-wdm.ko kernel/drivers/net/usb/cdc_ncm.ko kernel/drivers/net/usb/cdc_ether.ko kernel/drivers/net/usb/usbnet.ko
+kernel/drivers/net/usb/ch9200.ko: kernel/drivers/net/usb/usbnet.ko
 kernel/drivers/net/net_failover.ko: kernel/net/core/failover.ko
 kernel/drivers/cdrom/cdrom.ko:
 kernel/drivers/usb/phy/phy-generic.ko:
@@ -1455,16 +1443,16 @@ kernel/net/bridge/netfilter/ebt_log.ko: kernel/net/netfilter/x_tables.ko
 kernel/net/bridge/netfilter/ebt_nflog.ko: kernel/net/netfilter/x_tables.ko
 kernel/net/bridge/bridge.ko: kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
 kernel/net/bridge/br_netfilter.ko: kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/net/dsa/dsa_core.ko: kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/net/dsa/tag_brcm.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/net/dsa/tag_dsa.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/net/dsa/tag_edsa.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/net/dsa/tag_ksz.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/net/dsa/tag_rtl4_a.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/net/dsa/tag_lan9303.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/net/dsa/tag_mtk.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/net/dsa/tag_qca.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
-kernel/net/dsa/tag_trailer.ko: kernel/net/dsa/dsa_core.ko kernel/drivers/net/phy/phylink.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/net/dsa/dsa_core.ko: kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/net/dsa/tag_brcm.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/net/dsa/tag_dsa.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/net/dsa/tag_edsa.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/net/dsa/tag_ksz.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/net/dsa/tag_rtl4_a.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/net/dsa/tag_lan9303.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/net/dsa/tag_mtk.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/net/dsa/tag_qca.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
+kernel/net/dsa/tag_trailer.ko: kernel/net/dsa/dsa_core.ko kernel/net/bridge/bridge.ko kernel/net/802/stp.ko kernel/net/llc/llc.ko kernel/net/ipv6/ipv6.ko
 kernel/net/appletalk/appletalk.ko: kernel/net/802/psnap.ko kernel/net/llc/llc.ko
 kernel/net/x25/x25.ko:
 kernel/net/lapb/lapb.ko:

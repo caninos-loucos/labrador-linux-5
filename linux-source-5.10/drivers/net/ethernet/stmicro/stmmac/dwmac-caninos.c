@@ -29,11 +29,9 @@ struct caninos_priv_data {
 	
 	struct plat_stmmacenet_data *plat_dat;
 	struct device *dev;
-	struct clk *clk;
-	struct pinctrl *pctl;
+	struct clk *ref_clk, *eth_clk;
 	int power_gpio;
 	int reset_gpio;
-	unsigned int speed;
 };
 
 static int caninos_gmac_get_gpios(struct caninos_priv_data *gmac)
@@ -76,31 +74,22 @@ static void caninos_gmac_fix_speed(void *priv, unsigned int speed)
 {
 	struct caninos_priv_data *gmac = priv;
 	
-	speed = (speed < 1000U) ? 100U : 1000U;
-	
-	if (gmac->speed != speed)
-	{
-		gmac->speed = speed;
-		
-		if (speed == 1000U) {
-			clk_set_rate(gmac->clk, 125000000);
-		}
-		else {
-			clk_set_rate(gmac->clk, 50000000);
-		}
-		udelay(100);
+	if (speed == 1000U) {
+		clk_set_rate(gmac->ref_clk, 125000000);
+	}
+	else {
+		clk_set_rate(gmac->ref_clk, 50000000);
 	}
 }
 
 static void caninos_gmac_interface_fini(struct caninos_priv_data *gmac)
 {
-	gpio_direction_output(gmac->power_gpio, 0); /* power off the phy */
-	clk_disable_unprepare(gmac->clk);
+	gpio_set_value(gmac->reset_gpio, 0);
+	gpio_set_value(gmac->power_gpio, 0); /* power off the phy */
 }
 
 static int caninos_gmac_interface_init(struct caninos_priv_data *gmac)
 {
-	struct pinctrl_state *pctl_state;
 	struct device *dev = gmac->dev;
 	void __iomem *addr;
 	int ret = 0;
@@ -115,56 +104,45 @@ static int caninos_gmac_interface_init(struct caninos_priv_data *gmac)
 	switch (gmac->plat_dat->phy_interface)
 	{
 	case PHY_INTERFACE_MODE_RGMII:
-		pctl_state = pinctrl_lookup_state(gmac->pctl, "rgmii");
-		
-		if (IS_ERR(pctl_state)) {
-			ret = PTR_ERR(pctl_state);
-			dev_err(dev, "unable to get rgmii pinctrl state\n");
-		}
-		else {
-			pinctrl_select_state(gmac->pctl, pctl_state);
-			writel(0x1, addr);
-		}
+		writel(0x1, addr);
 		break;
 		
 	case PHY_INTERFACE_MODE_RMII:
-		pctl_state = pinctrl_lookup_state(gmac->pctl, "rmii");
-		
-		if (IS_ERR(pctl_state)) {
-			ret = PTR_ERR(pctl_state);
-			dev_err(dev, "unable to get rmii pinctrl state\n");
-		}
-		else {
-			pinctrl_select_state(gmac->pctl, pctl_state);
-			writel(0x4, addr);
-		}
+		writel(0x4, addr);
 		break;
 		
 	default:
 		dev_err(dev, "invalid phy interface\n");
-		ret = -EINVAL;
+		iounmap(addr);
+		return -EINVAL;
 	}
+	
+	/* power up the phy */
+	gpio_direction_output(gmac->reset_gpio, 1);
+	gpio_direction_output(gmac->power_gpio, 1);
+	msleep(150); /* time for power up */
+	
+	/* reset the phy */
+	gpio_set_value(gmac->reset_gpio, 0);
+	usleep_range(12000, 15000); /* time for reset */
+	gpio_set_value(gmac->reset_gpio, 1);
+	msleep(150); /* time required to access registers */
 	
 	iounmap(addr);
-	
-	if (!ret)
-	{
-		gmac->speed = 0;
-		clk_prepare_enable(gmac->clk);
-		caninos_gmac_fix_speed(gmac, 100);
-		
-		/* power up the phy */
-		gpio_direction_output(gmac->reset_gpio, 1);
-		gpio_direction_output(gmac->power_gpio, 1);
-		msleep(150); /* time for power up */
-		
-		/* reset the phy */
-		gpio_set_value(gmac->reset_gpio, 0);
-		usleep_range(12000, 15000); /* time for reset */
-		gpio_set_value(gmac->reset_gpio, 1);
-		msleep(150); /* time required to access registers */
-	}
 	return ret;
+}
+
+static void caninos_gmac_enable_clocks(struct caninos_priv_data *gmac)
+{
+	clk_prepare_enable(gmac->eth_clk);
+	clk_prepare_enable(gmac->ref_clk);
+	clk_set_rate(gmac->ref_clk, 50000000);
+}
+
+static void caninos_gmac_disable_clocks(struct caninos_priv_data *gmac)
+{
+	clk_disable_unprepare(gmac->ref_clk);
+	clk_disable_unprepare(gmac->eth_clk);
 }
 
 static int caninos_gmac_probe(struct platform_device *pdev)
@@ -182,19 +160,20 @@ static int caninos_gmac_probe(struct platform_device *pdev)
 	
 	gmac->dev = dev;
 	
-	gmac->pctl = devm_pinctrl_get(dev);
+	gmac->ref_clk = devm_clk_get(dev, "rmii");
 	
-	if (IS_ERR(gmac->pctl)) {
-		dev_err(dev, "unable to get pinctrl\n");
-		return PTR_ERR(gmac->pctl);
-	}
-	
-	gmac->clk = devm_clk_get(dev, "ref");
-	
-	if (IS_ERR(gmac->clk))
+	if (IS_ERR(gmac->ref_clk))
 	{
 		dev_err(dev, "unable to get ref clock\n");
-		return PTR_ERR(gmac->clk);
+		return PTR_ERR(gmac->ref_clk);
+	}
+	
+	gmac->eth_clk = devm_clk_get(dev, "eth");
+	
+	if (IS_ERR(gmac->eth_clk))
+	{
+		dev_err(dev, "unable to get eth clock\n");
+		return PTR_ERR(gmac->eth_clk);
 	}
 	
 	ret = caninos_gmac_get_gpios(gmac);
@@ -210,21 +189,33 @@ static int caninos_gmac_probe(struct platform_device *pdev)
 		return ret;
 	}
 	
+	caninos_gmac_enable_clocks(gmac);
+	
 	gmac->plat_dat = stmmac_probe_config_dt(pdev, &stmmac_res.mac);
 	
 	if (IS_ERR(gmac->plat_dat)) {
 		dev_err(dev, "stmmac_probe_config_dt routine failed\n");
+		caninos_gmac_disable_clocks(gmac);
 		return PTR_ERR(gmac->plat_dat);
 	}
 	
+	gmac->plat_dat->tx_coe = 0;
 	gmac->plat_dat->riwt_off = 1; /* disable Rx Watchdog */
 	gmac->plat_dat->bsp_priv = gmac;
 	gmac->plat_dat->fix_mac_speed = caninos_gmac_fix_speed;
+	gmac->plat_dat->maxmtu = 1518;
+	gmac->plat_dat->has_gmac = 1;
+	gmac->plat_dat->pmt = 1;
+	gmac->plat_dat->force_thresh_dma_mode = 1;
+	gmac->plat_dat->tx_fifo_size = 16384;
+	gmac->plat_dat->rx_fifo_size = 16384;
+	gmac->plat_dat->clk_csr = 0x4;
 	
 	ret = caninos_gmac_interface_init(gmac);
 	
 	if (ret) {
 		stmmac_remove_config_dt(pdev, gmac->plat_dat);
+		caninos_gmac_disable_clocks(gmac);
 		return ret;
 	}
 	
@@ -233,6 +224,7 @@ static int caninos_gmac_probe(struct platform_device *pdev)
 	if (ret) {
 		caninos_gmac_interface_fini(gmac);
 		stmmac_remove_config_dt(pdev, gmac->plat_dat);
+		caninos_gmac_disable_clocks(gmac);
 	}
 	return ret;
 }
@@ -242,9 +234,12 @@ static int caninos_gmac_remove(struct platform_device *pdev)
 	struct net_device *ndev = platform_get_drvdata(pdev);
 	struct stmmac_priv *priv = netdev_priv(ndev);
 	struct plat_stmmacenet_data *plat = priv->plat;
-	int ret = stmmac_dvr_remove(&pdev->dev);
+	int ret;
+	
+	ret = stmmac_dvr_remove(&pdev->dev);
 	caninos_gmac_interface_fini(plat->bsp_priv);
 	stmmac_remove_config_dt(pdev, plat);
+	caninos_gmac_disable_clocks(plat->bsp_priv);
 	return ret;
 }
 

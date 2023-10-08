@@ -343,7 +343,7 @@ static const struct caninos_pll_clock k5_pll_clks[] __initdata =
 	
 	CANINOS_PLL(CLK_ETHERNET_PLL, "ethernet_pll", "hosc",
 	            CMU_ETHERNETPLL, 500000000, 0, 0, 0, 0, 0,
-	            CANINOS_CLK_PLL_READ_ONLY, NULL,
+	            0, NULL,
 	            CLK_IS_CRITICAL),
 };
 
@@ -715,6 +715,8 @@ void __init k5_clk_init(struct device_node *np)
 		panic("%s: unable to map iomap.\n", __func__);
 		return;
 	}
+	
+	pr_info("CLK_ETHERNET_PLL: 0x%x\n", readl(base + CLK_ETHERNET_PLL));
 	
 	ctx = caninos_clk_init(np, base, CLK_NR_CLKS);
 	
