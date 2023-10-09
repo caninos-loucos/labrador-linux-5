@@ -716,7 +716,7 @@ void __init k5_clk_init(struct device_node *np)
 		return;
 	}
 	
-	pr_info("CLK_ETHERNET_PLL: 0x%x\n", readl(base + CLK_ETHERNET_PLL));
+	pr_info("CLK_ETHERNET_PLL: 0x%x\n", readl(base + CMU_ETHERNETPLL));
 	
 	ctx = caninos_clk_init(np, base, CLK_NR_CLKS);
 	
