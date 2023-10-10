@@ -33,5 +33,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&eth_state_rgmii>;
 	phy-mode = "rgmii";
+	max-speed = <1000>;
 	status = "okay";
 };

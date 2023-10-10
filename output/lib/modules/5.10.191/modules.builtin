@@ -293,7 +293,6 @@ kernel/drivers/net/pcs/pcs-xpcs.ko
 kernel/drivers/net/dsa/dsa_loop_bdinfo.ko
 kernel/drivers/net/ethernet/stmicro/stmmac/stmmac.ko
 kernel/drivers/net/ethernet/stmicro/stmmac/stmmac-platform.ko
-kernel/drivers/net/ethernet/stmicro/stmmac/dwmac-caninos.ko
 kernel/drivers/net/xen-netfront.ko
 kernel/drivers/uio/uio.ko
 kernel/drivers/uio/uio_pdrv_genirq.ko

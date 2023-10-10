@@ -120,7 +120,7 @@ static int caninos_gmac_interface_init(struct caninos_priv_data *gmac)
 	/* power up the phy */
 	gpio_direction_output(gmac->reset_gpio, 1);
 	gpio_direction_output(gmac->power_gpio, 1);
-	msleep(150); /* time for power up */
+	msleep(50); /* time for power up */
 	
 	/* reset the phy */
 	gpio_set_value(gmac->reset_gpio, 0);

@@ -470,6 +470,8 @@ alias of:N*T*Csff,sfpC* sfp
 alias of:N*T*Csff,sfp sfp
 alias of:N*T*Csff,sffC* sfp
 alias of:N*T*Csff,sff sfp
+alias mdio:0000001010000011101111000011???? adin
+alias mdio:0000001010000011101111000010???? adin
 alias mdio:0000000000100010010101100001???? amd
 alias mdio:0000001110100001101101001011???? aquantia
 alias mdio:0000001110100001101101011100???? aquantia
@@ -484,6 +486,7 @@ alias mdio:00000000010011011101000000100011 at803x
 alias mdio:00000000010011011101000001110100 at803x
 alias mdio:000000000100110111010000011?0110 at803x
 alias mdio:0000000000111011000110000100???? ax88796b
+alias mdio:101011100000001001010000000?1??? bcm54140
 alias mdio:0110000000001101100001010001???? bcm7xxx
 alias mdio:0110000000001101100001110101???? bcm7xxx
 alias mdio:0110000000001101100001001000???? bcm7xxx
@@ -501,6 +504,7 @@ alias mdio:1010111000000010010100011001???? bcm7xxx
 alias mdio:1010111000000010010100010010???? bcm7xxx
 alias mdio:1010111000000010010100101000???? bcm7xxx
 alias mdio:0011010110010000010100110001???? bcm7xxx
+alias mdio:1010111000000010010100010101???? bcm84881
 alias mdio:0000001101100010010111001101???? broadcom
 alias mdio:0000001101100010010111110010???? broadcom
 alias mdio:0000000101000011101111001111???? broadcom
@@ -539,6 +543,7 @@ alias mdio:0010000000000000010111001110???? dp83848
 alias mdio:0010000000000000010111001001???? dp83848
 alias mdio:0010000000000000010111001010???? dp83848
 alias mdio:0010000000000000101000100011???? dp83867
+alias mdio:0010000000000000101000001111???? dp83869
 alias mdio:0010000000000000101000100101???? dp83tc811
 alias mdio:????001001000011000011000101???? icplus
 alias mdio:????001001000011000011011001???? icplus
@@ -605,6 +610,9 @@ alias mdio:0000000000000111000001100111???? mscc
 alias mdio:0000000000000111000001001100???? mscc
 alias mdio:0000000000000111000001100011???? mscc
 alias mdio:0010000000000000010111000111???? national
+alias mdio:0000000110000000110111001000???? nxp_tja11xx
+alias mdio:0000000110000000110111010000???? nxp_tja11xx
+alias mdio:0000000110000000110111000100???? nxp_tja11xx
 alias mdio:0000000000011000000101000100???? qsemi
 alias mdio:0000000000011100110010?????????? realtek
 alias mdio:1011100000100100001010000010010? uPD60620
@@ -654,6 +662,8 @@ alias of:N*T*Cmdio-mux-gpioC* mdio_mux_gpio
 alias of:N*T*Cmdio-mux-gpio mdio_mux_gpio
 alias of:N*T*Cmdio-mux-mmioregC* mdio_mux_mmioreg
 alias of:N*T*Cmdio-mux-mmioreg mdio_mux_mmioreg
+alias of:N*T*Cmdio-mux-multiplexerC* mdio_mux_multiplexer
+alias of:N*T*Cmdio-mux-multiplexer mdio_mux_multiplexer
 alias of:N*T*Cmarvell,mv88e6250C* mv88e6xxx
 alias of:N*T*Cmarvell,mv88e6250 mv88e6xxx
 alias of:N*T*Cmarvell,mv88e6190C* mv88e6xxx
@@ -744,6 +754,8 @@ alias platform:smsc911x smsc911x
 alias of:N*T*Csmsc,lan9115C* smsc911x
 alias of:N*T*Csmsc,lan9115 smsc911x
 alias acpi*:ARMH9118:* smsc911x
+alias of:N*T*Ccaninos,k7-gmacC* dwmac_caninos
+alias of:N*T*Ccaninos,k7-gmac dwmac_caninos
 alias usb:v0CF3p20FFd*dc*dsc*dp*ic*isc*ip*in* ath9k_htc
 alias usb:v0930p0A08d*dc*dsc*dp*ic*isc*ip*in* ath9k_htc
 alias usb:v04DAp3904d*dc*dsc*dp*ic*isc*ip*in* ath9k_htc
@@ -8954,6 +8966,7 @@ alias hid:b0003g*v000005ACp00000265 hid_magicmouse
 alias hid:b0005g*v0000004Cp00000265 hid_magicmouse
 alias hid:b0005g*v000005ACp0000030E hid_magicmouse
 alias hid:b0005g*v000005ACp0000030D hid_magicmouse
+alias hid:b0003g*v000004D8p000000DD hid_mcp2221
 alias hid:b0003g*v00000079p00001846 hid_mf
 alias hid:b0003g*v00000079p00001844 hid_mf
 alias hid:b0003g*v00000079p00001843 hid_mf
@@ -9566,6 +9579,10 @@ alias of:N*T*Cti,wl1271-stC* hci_uart
 alias of:N*T*Cti,wl1271-st hci_uart
 alias of:N*T*Cti,cc2560C* hci_uart
 alias of:N*T*Cti,cc2560 hci_uart
+alias of:N*T*Crealtek,rtl8723bs-btC* hci_uart
+alias of:N*T*Crealtek,rtl8723bs-bt hci_uart
+alias of:N*T*Crealtek,rtl8822cs-btC* hci_uart
+alias of:N*T*Crealtek,rtl8822cs-bt hci_uart
 alias of:N*T*Cmrvl,88w8897C* hci_uart
 alias of:N*T*Cmrvl,88w8897 hci_uart
 alias usb:v0A5Cp2033d*dc*dsc*dp*ic*isc*ip*in* bcm203x
@@ -9683,6 +9700,8 @@ alias sdio:c*v02DFd912A* btmrvl_sdio
 alias sdio:c*v02DFd911B* btmrvl_sdio
 alias sdio:c*v02DFd911A* btmrvl_sdio
 alias sdio:c*v02DFd9105* btmrvl_sdio
+alias sdio:c*v037Ad7668* btmtksdio
+alias sdio:c*v037Ad7663* btmtksdio
 alias of:N*T*Cmediatek,mt7668u-bluetoothC* btmtkuart
 alias of:N*T*Cmediatek,mt7668u-bluetooth btmtkuart
 alias of:N*T*Cmediatek,mt7663u-bluetoothC* btmtkuart
@@ -10368,6 +10387,7 @@ alias can-gw can_gw
 alias net-pf-31 bluetooth
 alias bt-proto-3 rfcomm
 alias bt-proto-4 bnep
+alias bt-proto-5 cmtp
 alias bt-proto-6 hidp
 alias rpc_pipefs sunrpc
 alias fs-rpc_pipefs sunrpc

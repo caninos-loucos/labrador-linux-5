@@ -9649,6 +9649,10 @@ alias of:N*T*Cti,wl1271-stC* hci_uart
 alias of:N*T*Cti,wl1271-st hci_uart
 alias of:N*T*Cti,cc2560C* hci_uart
 alias of:N*T*Cti,cc2560 hci_uart
+alias of:N*T*Crealtek,rtl8723bs-btC* hci_uart
+alias of:N*T*Crealtek,rtl8723bs-bt hci_uart
+alias of:N*T*Crealtek,rtl8822cs-btC* hci_uart
+alias of:N*T*Crealtek,rtl8822cs-bt hci_uart
 alias of:N*T*Cmrvl,88w8897C* hci_uart
 alias of:N*T*Cmrvl,88w8897 hci_uart
 alias usb:v0A5Cp2033d*dc*dsc*dp*ic*isc*ip*in* bcm203x
