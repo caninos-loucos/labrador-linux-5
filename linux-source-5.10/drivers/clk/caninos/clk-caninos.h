@@ -337,48 +337,20 @@ caninos_register_divider_table(const struct caninos_div_clock *info,
                                spinlock_t *lock);
 
 extern struct caninos_clk_provider * __init
-caninos_clk_init(struct device_node *np,
-                 void __iomem *base, unsigned long nr_clks);
-
-extern void __init
-caninos_clk_register_gate(struct caninos_clk_provider *ctx,
-                          const struct caninos_gate_clock *clks,
-                          int num);
-
-extern void __init
-caninos_clk_register_mux(struct caninos_clk_provider *ctx,
-                         const struct caninos_mux_clock *clks,
-                         int num);
+caninos_clk_init(struct device_node *np, unsigned long nr_clks);
 
 extern void __init
 caninos_clk_register_pll(struct caninos_clk_provider *ctx,
-                         const struct caninos_pll_clock *clks,
-                         int num);
+                         const struct caninos_pll_clock *clks, int num);
 
 extern void __init
 caninos_clk_register_div(struct caninos_clk_provider *ctx,
-                         const struct caninos_div_clock *clks,
-                         int num);
+                         const struct caninos_div_clock *clks, int num);
 
 extern struct clk * __init
 caninos_register_pll(const struct caninos_pll_clock *info,
                      struct device *dev, void __iomem *reg,
                      spinlock_t *lock);
-
-extern void __init
-caninos_clk_register_fixed(struct caninos_clk_provider *ctx,
-                           const struct caninos_fixed_clock *clks,
-                           int num);
-
-extern void __init
-caninos_clk_register_fixed_factor(struct caninos_clk_provider *ctx,
-                                  const struct caninos_fixed_factor_clock *clks,
-                                  int num);
-
-extern void __init 
-caninos_clk_register_composite(struct caninos_clk_provider *ctx,
-                               const struct caninos_composite_clock *clks,
-                               int num);
 
 extern struct clk * __init
 caninos_register_composite(const struct caninos_composite_clock *info,

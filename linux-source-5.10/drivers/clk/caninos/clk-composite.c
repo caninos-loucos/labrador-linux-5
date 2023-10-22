@@ -491,8 +491,8 @@ caninos_register_composite(const struct caninos_composite_clock *info,
 	const struct clk_ops *rate_ops = NULL;
 	const struct clk_ops *gate_ops = NULL;
 	const struct clk_ops *mux_ops = NULL;
-	struct caninos_composite *comp;
-	unsigned int count = 0;
+	struct caninos_composite *comp = NULL;
+	unsigned int count = 0, i;
 	struct clk_hw *hw;
 	
 	if (data->gate.offset >= 0L)
@@ -526,7 +526,6 @@ caninos_register_composite(const struct caninos_composite_clock *info,
 	if (data->rate.offset >= 0L)
 	{
 		bool fixed_factor = false;
-		unsigned int len = 0U;
 		
 		if (data->rate.div_table != NULL)
 		{
@@ -544,15 +543,20 @@ caninos_register_composite(const struct caninos_composite_clock *info,
 			if (count == 0U) {
 				return ERR_PTR(-EINVAL);
 			}
-			len = (count + 1U) * sizeof(*div_table);
 			
 			/* allocate space for a copy of div_table */
-			if ((div_table = kzalloc(len, GFP_KERNEL)) == NULL) {
+			div_table = kcalloc(count + 1U, sizeof(*div_table), GFP_KERNEL);
+			
+			if (!div_table) {
 				return ERR_PTR(-ENOMEM);
 			}
 			
+			BUG_ON(div_table[count].div != 0U);
+			
 			/* copy div_table to allow __initconst*/
-			memcpy(div_table, data->rate.div_table, len);
+			for (i = 0; i < count; i++) {
+				div_table[i] = data->rate.div_table[i];
+			}
 		}
 		else if (data->rate.factor_table != NULL)
 		{
@@ -565,15 +569,21 @@ caninos_register_composite(const struct caninos_composite_clock *info,
 			if (count == 0U) {
 				return ERR_PTR(-EINVAL);
 			}
-			len = (count + 1U) * sizeof(*factor_table);
 			
 			/* allocate space for a copy of factor_table */
-			if ((factor_table = kzalloc(len, GFP_KERNEL)) == NULL) {
+			factor_table = kcalloc(count + 1U, sizeof(*factor_table),
+			                       GFP_KERNEL);
+			
+			if (!factor_table) {
 				return ERR_PTR(-ENOMEM);
 			}
 			
+			BUG_ON(factor_table[count].div != 0U);
+			
 			/* copy factor_table to allow __initconst */
-			memcpy(factor_table, data->rate.factor_table, len);
+			for (i = 0; i < count; i++) {
+				factor_table[i] = data->rate.factor_table[i];
+			}
 		}
 		else if ((data->rate.mult != 0U) && (data->rate.div != 0U))
 		{
@@ -595,20 +605,15 @@ caninos_register_composite(const struct caninos_composite_clock *info,
 		}
 	}
 	
-	if ((comp = kzalloc(sizeof(*comp), GFP_KERNEL)) == NULL)
-	{
-		if (div_table) {
-			kfree(div_table);
-		}
-		if (factor_table) {
-			kfree(factor_table);
-		}
+	comp = kzalloc(sizeof(*comp), GFP_KERNEL);
+	
+	if (!comp) {
+		kfree(div_table);
+		kfree(factor_table);
 		return ERR_PTR(-ENOMEM);
 	}
 	
-	/* copy data to allow __initconst */
-	memcpy(&comp->data, data, sizeof(*data));
-	
+	comp->data = *data; /* copy data to allow __initconst */
 	comp->id = info->id;
 	comp->reg = reg_base;
 	comp->lock = lock;
@@ -624,14 +629,8 @@ caninos_register_composite(const struct caninos_composite_clock *info,
 	if (IS_ERR(hw))
 	{
 		kfree(comp);
-		
-		if (div_table) {
-			kfree(div_table);
-		}
-		if (factor_table) {
-			kfree(factor_table);
-		}
-		
+		kfree(div_table);
+		kfree(factor_table);
 		return ERR_CAST(hw);
 	}
 	return hw->clk;
