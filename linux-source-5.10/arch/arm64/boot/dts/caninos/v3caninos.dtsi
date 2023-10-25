@@ -139,7 +139,7 @@
 			         <&cmu CLK_HOSC>, <&cmu CLK_PWM1>;
 			clock-names = "parent", "core", "hosc", "pwm1";
 			#clock-cells = <1>;
-			status = "disabled";
+			status = "okay";
 		};
 		
 		gic: interrupt-controller@e00f1000 {
@@ -692,7 +692,7 @@
 		};
 		
 		emac: ethernet@e0220000 {
-			compatible = "caninos,k7-gmac";
+			compatible = "caninos,k7-gmac", "snps,dwmac";
 			reg = <0x0 0xe0220000 0 0x2000>;
 			interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "macirq";
@@ -705,7 +705,7 @@
 			phy-reset-gpio = <&gpiod 31 GPIO_ACTIVE_HIGH>; 
 			phy-handle = <&phy0>;
 			
-			status = "disabled";
+			status = "okay";
 			
 			mdio {
 				compatible = "snps,dwmac-mdio";

@@ -160,6 +160,7 @@ kernel/drivers/spi/spi-gpio.ko
 kernel/drivers/spi/spi-sc18is602.ko
 kernel/drivers/spi/spi-slave-time.ko
 kernel/drivers/spi/spi-slave-system-control.ko
+kernel/drivers/net/phy/phylink.ko
 kernel/drivers/net/phy/sfp.ko
 kernel/drivers/net/phy/adin.ko
 kernel/drivers/net/phy/amd.ko
@@ -240,7 +241,12 @@ kernel/drivers/net/ethernet/mscc/mscc_ocelot_switch_lib.ko
 kernel/drivers/net/ethernet/mscc/mscc_ocelot.ko
 kernel/drivers/net/ethernet/smsc/smc91x.ko
 kernel/drivers/net/ethernet/smsc/smsc911x.ko
+kernel/drivers/net/ethernet/stmicro/stmmac/stmmac.ko
+kernel/drivers/net/ethernet/stmicro/stmmac/stmmac-platform.ko
+kernel/drivers/net/ethernet/stmicro/stmmac/dwmac-dwc-qos-eth.ko
+kernel/drivers/net/ethernet/stmicro/stmmac/dwmac-intel-plat.ko
 kernel/drivers/net/ethernet/stmicro/stmmac/dwmac-caninos.ko
+kernel/drivers/net/ethernet/stmicro/stmmac/dwmac-generic.ko
 kernel/drivers/net/wan/hdlc.ko
 kernel/drivers/net/wan/hdlc_raw.ko
 kernel/drivers/net/wan/hdlc_raw_eth.ko
@@ -310,6 +316,7 @@ kernel/drivers/net/eql.ko
 kernel/drivers/net/macsec.ko
 kernel/drivers/net/macvlan.ko
 kernel/drivers/net/macvtap.ko
+kernel/drivers/net/mii.ko
 kernel/drivers/net/netconsole.ko
 kernel/drivers/net/team/team.ko
 kernel/drivers/net/tun.ko
