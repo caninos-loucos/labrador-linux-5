@@ -265,19 +265,15 @@ struct clk *__init caninos_register_pll(const struct caninos_pll_clock *info,
                                         struct device *dev, void __iomem *reg,
                                         spinlock_t *lock)
 {
-	struct clk_init_data init;
-	struct caninos_pll *pll;
-	int ret, count, len;
+	struct clk_pll_table *table = NULL;
+	struct clk_init_data init = {0};
+	struct caninos_pll *pll = NULL;
+	unsigned int count = 0U;
 	struct clk_hw *hw;
+	int ret, i;
 	
 	if (!lock) {
 		return ERR_PTR(-EINVAL);
-	}
-	
-	pll = kzalloc(sizeof(*pll), GFP_KERNEL);
-	
-	if (!pll) {
-		return ERR_PTR(-ENOMEM);
 	}
 	
 	init.name = info->name;
@@ -293,29 +289,39 @@ struct clk *__init caninos_register_pll(const struct caninos_pll_clock *info,
 	init.parent_names = (info->parent_name ? &info->parent_name : NULL);
 	init.num_parents = (info->parent_name ? 1 : 0);
 	
-	if (info->table) {
+	if (info->table)
+	{
 		/* calculate the number of elements in pll_table */
-		for (count = 0; info->table[count].rate > 0UL; count++);
-		
-		if (!count) {
-			kfree(pll);
+		while (info->table[count].rate != 0UL) {
+			count++;
+		}
+		if (count == 0U) {
 			return ERR_PTR(-EINVAL);
 		}
 		
-		len = (count + 1) * sizeof(*pll->table);
-		
 		/* allocate space for a copy of pll_table */
-		pll->table = kmalloc(len, GFP_KERNEL);
+		table = kcalloc(count + 1U, sizeof(*table), GFP_KERNEL);
 		
-		if (!pll->table) {
-			kfree(pll);
+		if (!table) {
 			return ERR_PTR(-ENOMEM);
 		}
 		
+		BUG_ON(table[count].rate != 0U);
+		
 		/* copy pll_table to allow __initconst*/
-		memcpy(pll->table, info->table, len);
+		for (i = 0; i < count; i++) {
+			table[i] = info->table[i];
+		}
 	}
 	
+	pll = kzalloc(sizeof(*pll), GFP_KERNEL);
+	
+	if (!pll) {
+		kfree(table);
+		return ERR_PTR(-ENOMEM);
+	}
+	
+	pll->table = table;
 	pll->bfreq = info->bfreq;
 	pll->enable_bit = info->enable_bit;
 	pll->shift = info->shift;
@@ -330,14 +336,11 @@ struct clk *__init caninos_register_pll(const struct caninos_pll_clock *info,
 	hw = &pll->hw;
 	ret = clk_hw_register(dev, hw);
 	
-	if (!ret) {
-		return hw->clk;
+	if (ret) {
+		kfree(table);
+		kfree(pll);
+		return ERR_PTR(ret);
 	}
-	if (pll->table) {
-		kfree(pll->table);
-	}
-	kfree(pll);
-	
-	return ERR_PTR(ret);
+	return hw->clk;
 }
 

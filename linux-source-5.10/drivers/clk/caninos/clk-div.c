@@ -31,29 +31,32 @@ caninos_register_divider_table(const struct caninos_div_clock *info,
                                spinlock_t *lock)
 {
 	struct clk_div_table *table = NULL;
+	unsigned int count = 0U, i;
 	struct clk *clk;
-	int count, len;
 	
 	if (info->table)
 	{
 		/* calculate the number of elements in div_table */
-		for (count = 0; info->table[count].div > 0UL; count++);
-		
-		if (!count) {
+		while (info->table[count].div != 0U) {
+			count++;
+		}
+		if (count == 0U) {
 			return ERR_PTR(-EINVAL);
 		}
 		
-		len = (count + 1) * sizeof(*table);
-		
 		/* allocate space for a copy of div_table */
-		table = kmalloc(len, GFP_KERNEL);
+		table = kcalloc(count + 1U, sizeof(*table), GFP_KERNEL);
 		
 		if (!table) {
 			return ERR_PTR(-ENOMEM);
 		}
 		
+		BUG_ON(table[count].div != 0U);
+		
 		/* copy div_table to allow __initconst*/
-		memcpy(table, info->table, len);
+		for (i = 0; i < count; i++) {
+			table[i] = info->table[i];
+		}
 	}
 	
 	clk = clk_register_divider_table(dev, info->name, info->parent_name,
@@ -61,7 +64,7 @@ caninos_register_divider_table(const struct caninos_div_clock *info,
 	                                 info->shift, info->width, info->div_flags,
 	                                 table, lock);
 	
-	if (IS_ERR(clk) && table) {
+	if (IS_ERR(clk)) {
 		kfree(table);
 	}
 	return clk;

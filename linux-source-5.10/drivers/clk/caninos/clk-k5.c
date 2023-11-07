@@ -707,23 +707,12 @@ static const struct caninos_clock_tree k5_clk_tree __initdata =
 
 void __init k5_clk_init(struct device_node *np)
 {
-	struct caninos_clk_provider *ctx;
-	void __iomem *base = of_iomap(np, 0);
+	struct caninos_clk_provider *ctx = caninos_clk_init(np, CLK_NR_CLKS);
 	
-	if (!base)
-	{
-		panic("%s: unable to map iomap.\n", __func__);
-		return;
+	if (ctx) {
+		caninos_register_clk_tree(ctx, &k5_clk_tree);
+		pr_info("probe finished\n");
 	}
-	
-	ctx = caninos_clk_init(np, base, CLK_NR_CLKS);
-	
-	if (!ctx) {
-		return;
-	}
-	
-	caninos_register_clk_tree(ctx, &k5_clk_tree);
-	pr_info("probe finished\n");
 }
 
 CLK_OF_DECLARE(k5_clk, "caninos,k5-cmu", k5_clk_init);

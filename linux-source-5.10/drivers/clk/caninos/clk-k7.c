@@ -285,7 +285,6 @@ static const struct clk_factor_table codec_gpu_factor_table[] __initdata = {
 static const struct caninos_fixed_clock k7_fixed_clks[] __initdata =
 {
 	CANINOS_FIXED_RATE(CLK_LOSC, "losc", NULL, 32768, CLK_IS_CRITICAL),
-	
 	CANINOS_FIXED_RATE(CLK_HOSC, "hosc", NULL, 24000000, CLK_IS_CRITICAL),
 };
 
@@ -683,36 +682,46 @@ static const struct caninos_composite_clock k7_comp_clks[] __initdata = {
 		CANINOS_COMP_DIVIDER(CMU_SSTSCLK, 20, 10, NULL)),
 };
 
+static const struct caninos_clock_tree k7_clk_tree __initdata =
+{
+	.fixed = {
+		.clks = k7_fixed_clks,
+		.num = ARRAY_SIZE(k7_fixed_clks),
+	},
+	.factor = {
+		.clks = NULL,
+		.num = 0,
+	},
+	.pll = {
+		.clks = k7_pll_clks,
+		.num = ARRAY_SIZE(k7_pll_clks),
+	},
+	.div = {
+		.clks = k7_div_clks,
+		.num = ARRAY_SIZE(k7_div_clks),
+	},
+	.mux = {
+		.clks = k7_mux_clks,
+		.num = ARRAY_SIZE(k7_mux_clks),
+	},
+	.gate = {
+		.clks = k7_gate_clks,
+		.num = ARRAY_SIZE(k7_gate_clks),
+	},
+	.comp = {
+		.clks = k7_comp_clks,
+		.num = ARRAY_SIZE(k7_comp_clks),
+	},
+};
+
 void __init k7_clk_init(struct device_node *np)
 {
-    struct caninos_clk_provider *ctx;
-    void __iomem *base = of_iomap(np, 0);
-    
-    if (!base)
-    {
-        panic("%s: unable to map iomap.\n", __func__);
-        return;
-    }
-    
-    ctx = caninos_clk_init(np, base, CLK_NR_CLKS);
-    
-    if (!ctx) {
-        return;
-    }
-    
-    caninos_clk_register_fixed(ctx, k7_fixed_clks, ARRAY_SIZE(k7_fixed_clks));
-    
-    caninos_clk_register_pll(ctx, k7_pll_clks, ARRAY_SIZE(k7_pll_clks));
-    
-    caninos_clk_register_div(ctx, k7_div_clks, ARRAY_SIZE(k7_div_clks));
-    
-    caninos_clk_register_mux(ctx, k7_mux_clks, ARRAY_SIZE(k7_mux_clks));
-    
-    caninos_clk_register_gate(ctx, k7_gate_clks, ARRAY_SIZE(k7_gate_clks));
-    
-    caninos_clk_register_composite(ctx, k7_comp_clks, ARRAY_SIZE(k7_comp_clks));
-    
-    pr_info("probe finished\n");
+	struct caninos_clk_provider *ctx = caninos_clk_init(np, CLK_NR_CLKS);
+	
+	if (ctx) {
+		caninos_register_clk_tree(ctx, &k7_clk_tree);
+		pr_info("probe finished\n");
+	}
 }
 
 CLK_OF_DECLARE(k7_clk, "caninos,k7-cmu", k7_clk_init);
