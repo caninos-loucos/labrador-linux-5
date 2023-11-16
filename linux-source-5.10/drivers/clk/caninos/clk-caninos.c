@@ -39,7 +39,8 @@ caninos_register_clkdev(struct caninos_clk_provider *ctx,
 	int ret;
 	
 	if (IS_ERR(clk)) {
-		pr_err("clkdev %s: uninitialized clock ret=%d.\n", name, PTR_ERR(clk));
+		ret = PTR_ERR(clk);
+		pr_err("clkdev %s: uninitialized clock ret=%d.\n", name, ret);
 		return;
 	}
 	if (id < 0 || id >= ctx->clk_data.clk_num) {
