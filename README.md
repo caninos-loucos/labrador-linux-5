@@ -98,11 +98,11 @@ After successful compilation, the kernel image, device tree binaries and kernel 
 
 To copy the kernel onto an SD card that contains a Labrador system, execute  
 ``` 
-sh install.sh
+make install
 ```  
 for 64-bit architecture, or  
 ```
-sh install32.sh
+make install32
 ```   
 for 32-bit architecture.
 
