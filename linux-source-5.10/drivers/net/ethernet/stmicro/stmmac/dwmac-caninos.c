@@ -84,8 +84,8 @@ static void caninos_gmac_fix_speed(void *priv, unsigned int speed)
 
 static void caninos_gmac_interface_fini(struct caninos_priv_data *gmac)
 {
-	gpio_set_value(gmac->reset_gpio, 0);
-	gpio_set_value(gmac->power_gpio, 0); /* power off the phy */
+	gpio_set_value_cansleep(gmac->reset_gpio, 0);
+	gpio_set_value_cansleep(gmac->power_gpio, 0); /* power off the phy */
 }
 
 static int caninos_gmac_interface_init(struct caninos_priv_data *gmac)
@@ -123,9 +123,9 @@ static int caninos_gmac_interface_init(struct caninos_priv_data *gmac)
 	msleep(150); /* time for power up */
 	
 	/* reset the phy */
-	gpio_set_value(gmac->reset_gpio, 0);
+	gpio_set_value_cansleep(gmac->reset_gpio, 0);
 	usleep_range(12000, 15000); /* time for reset */
-	gpio_set_value(gmac->reset_gpio, 1);
+	gpio_set_value_cansleep(gmac->reset_gpio, 1);
 	msleep(150); /* time required to access registers */
 	
 	iounmap(addr);

@@ -324,24 +324,6 @@
 			status = "okay";
 		};
 		
-		leds {
-			compatible = "gpio-leds";
-			
-			led@1 {
-				label = "led1"; //LVDS_RXOC_P - GPIOB12
-				gpios = <&gpiob 12 GPIO_ACTIVE_HIGH>;
-				linux,default-trigger = "default-on";
-				default-state = "ON";
-			};
-			
-			led@2 {
-				label = "led2"; //LCD0_D17 - GPIOB31
-				gpios = <&gpiob 31 GPIO_ACTIVE_HIGH>;
-				linux,default-trigger = "heartbeat";
-				default-state = "ON";
-			};
-		};
-		
 		sound@e0166000 {
 			compatible = "caninos,sndcard";
 			reg = <0x0 0xe0166000 0x0 0x34>;
@@ -524,9 +506,6 @@
 			reset-names = "mmc";
 			dmas = <&dma DMA_DRQ_SD1>;
 			dma-names = "mmc";
-			power-gpios = <&gpiod 30 GPIO_ACTIVE_HIGH>; /* base v1.0a */
-			enable-gpios = <&gpiob 30 GPIO_ACTIVE_HIGH>, 
-			               <&gpioc 3 GPIO_ACTIVE_HIGH>;
 			status = "okay";
 			
 			pinctrl-names = "default";
@@ -701,8 +680,6 @@
 			resets = <&rst RST_ETHERNET>;
 			reset-names = "stmmaceth";
 			
-			phy-power-gpio = <&gpiob 11 GPIO_ACTIVE_HIGH>;
-			phy-reset-gpio = <&gpiod 31 GPIO_ACTIVE_HIGH>; 
 			phy-handle = <&phy0>;
 			
 			status = "okay";
