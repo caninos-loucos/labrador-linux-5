@@ -39,7 +39,7 @@ fi
 
 filePath=${1}/${2}-armhf-${3}.tar.gz
 
-if [ ! -e ${filePath} ]; then
+if [ ! -f ${filePath} ]; then
 	echo "Error: input file '${filePath}' does not exist."
 	exit 1
 fi
@@ -95,7 +95,7 @@ echo "Copying files..."
 sudo cp ${outputDir}/uImage ${BOOTDIR}
 sudo cp ${outputDir}/*.dtb ${BOOTDIR}
 sudo cp -r ${outputDir}/lib/modules ${LIBDIR}
-sync
+sudo sync
 
 echo "Kernel installed."
 exit 0
