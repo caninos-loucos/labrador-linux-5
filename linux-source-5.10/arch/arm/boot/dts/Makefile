@@ -1411,5 +1411,5 @@ dtb-$(CONFIG_ARCH_ASPEED) += \
 	aspeed-bmc-opp-zaius.dtb \
 	aspeed-bmc-portwell-neptune.dtb \
 	aspeed-bmc-quanta-q71l.dtb
-dtb-$(CONFIG_MACH_CANINOS) += caninos-k5-base21.dtb \
+dtb-$(CONFIG_MACH_CANINOS) += caninos-k5.dtb \
 							  caninos-k5-base31.dtb
