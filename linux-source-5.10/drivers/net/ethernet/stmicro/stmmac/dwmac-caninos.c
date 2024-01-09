@@ -2,6 +2,7 @@
 /*
  * Caninos Labrador DWMAC specific glue layer
  * Copyright (c) 2019-2024 LSI-TEC - Caninos Loucos
+ * Copyright (c) 2019-2024 LSI-TEC - Caninos Loucos
  * Edgar Bernardi Righi <edgar.righi@lsitec.org.br>
  * Igor Ruschi Andrade E Lima <igor.lima@lsitec.org.br>
  *
@@ -164,7 +165,7 @@ static int caninos_gmac_init(struct platform_device *pdev, void *priv)
 }
 
 static void caninos_gmac_exit(struct platform_device *pdev, void *priv)
-{
+{	
 	struct caninos_priv_data *gmac = priv;
 	
 	clk_disable_unprepare(gmac->ref_clk);

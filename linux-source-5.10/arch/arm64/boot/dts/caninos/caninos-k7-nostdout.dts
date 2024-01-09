@@ -32,8 +32,3 @@
 	phy-power-gpio = <&gpiob 11 GPIO_ACTIVE_HIGH>;
 	phy-reset-gpio = <&gpiod 31 GPIO_ACTIVE_HIGH>;
 };
-
-&mmc1 {
-	enable-gpios = <&gpiob 30 GPIO_ACTIVE_HIGH>, 
-				   <&gpioc 3  GPIO_ACTIVE_HIGH>;
-};
