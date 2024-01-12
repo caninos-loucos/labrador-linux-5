@@ -16,12 +16,6 @@ config MFD_ATC260X_AUXADC
 	help
 	  Support for reading the ATC260x PMICs auxiliary ADC inputs.
 
-config MFD_ATC260X_POWEROFF
-	bool "ATC260x PMICs Power on/off"
-	depends on MFD_ATC260X
-	help
-	  Support for ATC260x PMICs power on/off.
-
 config MFD_ATC260X_BATTERY
 	bool "ATC260x PMICs Battery Charging"
 	depends on MFD_ATC260X

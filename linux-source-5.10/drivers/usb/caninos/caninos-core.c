@@ -373,6 +373,7 @@ static int caninos_hcd_probe(struct platform_device *pdev)
 	hcd->rsrc_len = pdata->rsrc_len;
 	
 	acthcd = hcd_to_aotg(hcd);
+	acthcd->port_specific = pdata;
 	acthcd->dev = &pdev->dev;
 	acthcd->base = pdata->base;
 	acthcd->hcd_exiting = 0;
@@ -441,6 +442,25 @@ static int __maybe_unused caninos_resume(struct device *dev)
 	return 0;
 }
 
+static void caninos_hcd_shutdown(struct platform_device *pdev)
+{
+	struct usb_hcd *hcd = platform_get_drvdata(pdev);
+	struct aotg_hcd *acthcd = hcd_to_aotg(hcd);
+	
+	if (acthcd) {
+		aotg_disable_irq(acthcd);
+		aotg_powergate_off(acthcd->port_specific);
+		
+		acthcd->hcd_exiting = 1;
+		
+		tasklet_kill(&acthcd->urb_tasklet);
+		del_timer_sync(&acthcd->trans_wait_timer);
+		del_timer_sync(&acthcd->check_trb_timer);
+		hrtimer_cancel(&acthcd->hotplug_timer);
+	}
+	usb_hcd_platform_shutdown(pdev);
+}
+
 static SIMPLE_DEV_PM_OPS(caninos_pm_ops, caninos_suspend, caninos_resume);
 
 static const struct of_device_id caninos_hcd_dt_id[] = {
@@ -461,7 +481,7 @@ static struct platform_driver caninos_hcd_driver = {
 	},
 	.probe = caninos_hcd_probe,
 	.remove = caninos_hcd_remove,
-	.shutdown = usb_hcd_platform_shutdown,
+	.shutdown = caninos_hcd_shutdown,
 };
 
 static int __init caninos_usb_module_init(void)
@@ -481,7 +501,6 @@ static int __init caninos_usb_module_init(void)
 		return ret;
 	}
 	
-	pr_info("driver registered\n");
 	return 0;
 }
 
@@ -494,8 +513,6 @@ static void __exit caninos_usb_module_exit(void)
 	if (td_cache) {
 		kmem_cache_destroy(td_cache);
 	}
-	
-	pr_info("driver unregistered\n");
 }
 
 module_exit(caninos_usb_module_exit);

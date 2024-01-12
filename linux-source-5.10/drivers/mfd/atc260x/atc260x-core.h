@@ -22,7 +22,7 @@ struct atc260x_dev
 {
 	struct device *dev;
 	struct regmap *regmap;
-	u8 ic_type;	/* see ATC260X_ICTYPE_2603A ... */
+	int ic_type;
 };
 
-#endif				/* __MFD_ATC260X_CORE_H__ */
+#endif /* __MFD_ATC260X_CORE_H__ */

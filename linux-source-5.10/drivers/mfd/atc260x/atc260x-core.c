@@ -27,12 +27,28 @@
 
 #include "atc260x-core.h"
 
+int atc260x_reg_setbits(struct atc260x_dev *atc260x,
+                        uint reg, u16 msk, u16 val)
+{
+	if (!atc260x) {
+		return -EINVAL;
+	}
+	if (!atc260x->dev || !atc260x->regmap) {
+		return -EINVAL;
+	}
+	return regmap_update_bits(atc260x->regmap, reg, msk, val);
+}
+EXPORT_SYMBOL(atc260x_reg_setbits);
+
 int atc260x_reg_read(struct atc260x_dev *atc260x, uint reg)
 {
-	uint data = -1;
+	uint data = -EINVAL;
 	int ret;
 	
 	if (!atc260x) {
+		return -EINVAL;
+	}
+	if (!atc260x->dev || !atc260x->regmap) {
 		return -EINVAL;
 	}
 	
@@ -49,6 +65,9 @@ EXPORT_SYMBOL(atc260x_reg_read);
 int atc260x_reg_write(struct atc260x_dev *atc260x, uint reg, u16 val)
 {
 	if (!atc260x) {
+		return -EINVAL;
+	}
+	if (!atc260x->dev || !atc260x->regmap) {
 		return -EINVAL;
 	}
 	return regmap_write(atc260x->regmap, reg, val);

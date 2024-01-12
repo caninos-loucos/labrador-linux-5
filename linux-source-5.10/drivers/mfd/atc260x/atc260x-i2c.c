@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 LSI-TEC - Caninos Loucos
+ * Copyright (c) 2019-2024 LSI-TEC - Caninos Loucos
  * Author: Edgar Bernardi Righi <edgar.righi@lsitec.org.br>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,14 @@
 #include <linux/mfd/core.h>
 #include <linux/mfd/atc260x/atc260x.h>
 #include <linux/dma-mapping.h>
+#include <asm/system_misc.h>
+
 #include "atc260x-core.h"
+
+#define MFD_CELL_OF_NAME(_name, _compat) \
+	{ .name = _name, .of_compatible = _compat, }
+
+static struct atc260x_dev pmic = { NULL };
 
 static struct regmap_config atc2603c_i2c_regmap_config = {
 	.reg_bits = 8,
@@ -46,86 +53,157 @@ static struct regmap_config atc2609a_i2c_regmap_config = {
 };
 
 static const struct mfd_cell sc_atc2603c_cells[] = {
-	{
-	.name = "atc2603c-audio",
-	.of_compatible = "actions,atc2603c-audio",
-	},
-	{
-	.name = "atc2603c-auxadc",
-	.of_compatible = "actions,atc2603c-auxadc",
-	},
-	{
-	.name = "atc2603c-poweroff",
-	.of_compatible = "actions,atc2603c-poweroff",
-	},
-	{
-	.name = "atc2603c-battery",
-	.of_compatible = "actions,atc2603c-battery",
-	}
+	MFD_CELL_OF_NAME("atc2603c-audio", "actions,atc2603c-audio"),
+	MFD_CELL_OF_NAME("atc2603c-auxadc", "actions,atc2603c-auxadc"),
+	MFD_CELL_OF_NAME("atc2603c-battery", "actions,atc2603c-battery"),
 };
+
+static void atc260x_prepare_pm_op(void)
+{
+	/* clear all wakeup sources except on/off long and reset */
+	atc260x_reg_setbits(&pmic, ATC2603C_PMU_SYS_CTL0, 0xfbe0,
+	                    BIT(13) | BIT(6));
+	atc260x_reg_setbits(&pmic, ATC2603C_PMU_SYS_CTL4,
+	                    BIT(9) | BIT(8) | BIT(7), 0);
+	
+	/* set bit 14 to enable s3 power state (sleep mode)
+	 * this setting is ignored when current state is s1 (working mode) */
+	atc260x_reg_setbits(&pmic, ATC2603C_PMU_SYS_CTL3,
+	                    BIT(15) | BIT(14), BIT(14));
+}
+
+static void atc260x_poweroff(void)
+{
+	atc260x_prepare_pm_op();
+	
+	/* clear bit 0 to leave s1 power state */
+	atc260x_reg_setbits(&pmic, ATC2603C_PMU_SYS_CTL1, BIT(0), 0);
+	
+	for(;;) { /* must never return */
+		mdelay(200);
+	}
+}
+
+static void atc260x_restart(enum reboot_mode reboot_mode, const char *cmd)
+{
+	atc260x_prepare_pm_op();
+	
+	/* set bit 10 to start reset */
+	atc260x_reg_setbits(&pmic, ATC2603C_PMU_SYS_CTL0, BIT(10), BIT(10));
+	
+	for(;;) { /* must never return */
+		mdelay(200);
+	}
+}
+
+static int atc260x_system_control_setup(void)
+{
+	int ret;
+	
+	ret = atc260x_reg_write(&pmic, ATC2603C_PMU_SYS_CTL0, 0xE0CB);
+	
+	if (ret < 0) {
+		dev_err(pmic.dev, "unable to write to PMU_SYS_CTL0 register\n");
+		return ret;
+	}
+	
+	ret = atc260x_reg_write(&pmic, ATC2603C_PMU_SYS_CTL1, 0xF);
+	
+	if (ret < 0) {
+		dev_err(pmic.dev, "unable to write to PMU_SYS_CTL1 register\n");
+		return ret;
+	}
+	
+	ret = atc260x_reg_write(&pmic, ATC2603C_PMU_SYS_CTL2, 0x680);
+	
+	if (ret < 0) {
+		dev_err(pmic.dev, "unable to write to PMU_SYS_CTL2 register\n");
+		return ret;
+	}
+	
+	ret = atc260x_reg_write(&pmic, ATC2603C_PMU_SYS_CTL3, 0x280);
+	
+	if (ret < 0) {
+		dev_err(pmic.dev, "unable to write to PMU_SYS_CTL3 register\n");
+		return ret;
+	}
+	
+	ret = atc260x_reg_write(&pmic, ATC2603C_PMU_SYS_CTL5, 0x180);
+	
+	if (ret < 0) {
+		dev_err(pmic.dev, "unable to write to PMU_SYS_CTL5 register\n");
+		return ret;
+	}
+	
+	return 0;
+}
 
 static int atc260x_i2c_probe(struct i2c_client *i2c,
                              const struct i2c_device_id *id)
 {
-	struct atc260x_dev *atc260x;
-	struct regmap_config *p_regmap_cfg;
+	struct regmap *regmap;
 	int ret;
 	
-	ret = i2c_check_functionality(i2c->adapter, I2C_FUNC_I2C);
+	BUG_ON(!i2c || !id);
 	
-	if (!ret)
-	{
-		dev_err(&i2c->dev, "i2c bus is not functional.\n");
-		return -EFAULT;
+	if (!i2c_check_functionality(i2c->adapter, I2C_FUNC_I2C)) {
+		dev_err(&i2c->dev, "i2c bus is not functional\n");
+		return -EPROBE_DEFER;
+	}
+	if (pmic.dev) {
+		dev_err(&i2c->dev, "only one instance can be active at any time\n");
+		return -EINVAL;
 	}
 	
-	atc260x = devm_kzalloc(&i2c->dev, sizeof(*atc260x), GFP_KERNEL);
+	dma_coerce_mask_and_coherent(&i2c->dev, DMA_BIT_MASK(32));
 	
-	if (atc260x == NULL)
-	{
-		dev_err(&i2c->dev, "could not allocate memory.\n");
-		return -ENOMEM;
-	}
-	
-	atc260x->ic_type = id->driver_data;
-	
-	switch (atc260x->ic_type)
+	switch ((int)id->driver_data)
 	{
 	case ATC260X_ICTYPE_2603C:
-		p_regmap_cfg = &atc2603c_i2c_regmap_config;
+		regmap = devm_regmap_init_i2c(i2c, &atc2603c_i2c_regmap_config);
 		break;
 	case ATC260X_ICTYPE_2609A:
-		p_regmap_cfg = &atc2609a_i2c_regmap_config;
+		regmap = devm_regmap_init_i2c(i2c, &atc2609a_i2c_regmap_config);
 		break;
 	default:
 		dev_err(&i2c->dev, "invalid ic type.\n");
 		return -ENODEV;
 	}
 	
-	atc260x->dev = &i2c->dev;
-	
-	dma_coerce_mask_and_coherent(atc260x->dev, DMA_BIT_MASK(32));
-	
-	atc260x->regmap = devm_regmap_init_i2c(i2c, p_regmap_cfg);
-	
-	if (IS_ERR(atc260x->regmap))
-	{
-		ret = PTR_ERR(atc260x->regmap);
-		dev_err(atc260x->dev, "could not allocate register map: %d\n", ret);
+	if (IS_ERR(regmap)) {
+		ret = PTR_ERR(regmap);
+		dev_err(&i2c->dev, "could not allocate register map: %d\n", ret);
 		return ret;
 	}
 	
-	i2c_set_clientdata(i2c, atc260x);
+	pmic.dev =  &i2c->dev;
+	pmic.regmap = regmap;
+	pmic.ic_type = (int)id->driver_data;
 	
-	ret = devm_mfd_add_devices(atc260x->dev, 0, sc_atc2603c_cells,
-			      ARRAY_SIZE(sc_atc2603c_cells),
-			      NULL, 0, NULL);
+	i2c_set_clientdata(i2c, &pmic);
 	
-	if (ret)
-	{
-		dev_err(atc260x->dev, "failed to add children devices: %d\n", ret);
+	ret = atc260x_system_control_setup();
+	
+	if (ret) {
+		dev_err(&i2c->dev, "failed to setup system control regs: %d\n", ret);
+		i2c_set_clientdata(i2c, NULL);
+		pmic.dev = NULL;
 		return ret;
 	}
+	
+	ret = devm_mfd_add_devices(&i2c->dev, 0, sc_atc2603c_cells,
+	                           ARRAY_SIZE(sc_atc2603c_cells),
+	                           NULL, 0, NULL);
+	
+	if (ret) {
+		dev_err(&i2c->dev, "failed to add children devices: %d\n", ret);
+		i2c_set_clientdata(i2c, NULL);
+		pmic.dev = NULL;
+		return ret;
+	}
+	
+	pm_power_off = atc260x_poweroff;
+	arm_pm_restart = atc260x_restart;
 	
 	dev_info(&i2c->dev, "probe finished\n");
 	return 0;
@@ -133,13 +211,15 @@ static int atc260x_i2c_probe(struct i2c_client *i2c,
 
 static int atc260x_i2c_remove(struct i2c_client *i2c)
 {
+	pm_power_off = NULL;
+	arm_pm_restart = NULL;
 	return 0;
 }
 
 const struct i2c_device_id atc260x_i2c_id[] = {
 	{ "atc2603c", ATC260X_ICTYPE_2603C },
 	{ "atc2609a", ATC260X_ICTYPE_2609A },
-    {}
+	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(i2c, atc260x_i2c_id);
 
