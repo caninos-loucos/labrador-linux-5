@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 ed92ea29a1b60b94030417beed424d38c6173bfa76177619bf372052771dffe6  labrador-kernel5-armhf-v01.tar.gz
+=======
+085c8925dc7462a7837fc1954d4988d63d786fa2a1210beff0974c52393812e6  labrador-kernel5-armhf-v01.tar.gz
+>>>>>>> d9a0da731 (Fixed inconsistent poweroff-reboot behavior. Fixed broken i2c atomic write. Added shutdown routines to DMA and USB2 drivers.)
