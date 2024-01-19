@@ -1287,6 +1287,16 @@ static int caninos_dma_remove(struct platform_device *pdev)
 	return 0;
 }
 
+static void caninos_dma_shutdown(struct platform_device *pdev)
+{
+	struct lab_dma *cd = platform_get_drvdata(pdev);
+	
+	if (cd) {
+		dma_writel(cd, DMA_IRQ_EN0, 0x0);
+		clk_disable_unprepare(cd->clk);
+	}
+}
+
 static const struct of_device_id caninos_dma_match[] = {
 	{ .compatible = "caninos,k9-dma", .data = (void *)DEVID_K9_DMAC,},
 	{ .compatible = "caninos,k7-dma", .data = (void *)DEVID_K7_DMAC,},
@@ -1308,6 +1318,7 @@ static struct platform_driver caninos_dma_driver = {
 		.of_match_table = of_match_ptr(caninos_dma_match),
 		.pm = &caninos_dma_pm_ops,
 	},
+	.shutdown = caninos_dma_shutdown,
 };
 
 static int caninos_dma_init(void)

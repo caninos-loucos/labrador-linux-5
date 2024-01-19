@@ -772,6 +772,7 @@ static void caninos_mmc_en_low_voltage(struct mmc_host *host, bool enable)
 {
 	struct caninos_mmc_host *priv = mmc_priv(host);
 	u32 new_val, val;
+	bool scc_en;
 	
 	val = readl(HOST_EN(priv));
 	
@@ -783,11 +784,17 @@ static void caninos_mmc_en_low_voltage(struct mmc_host *host, bool enable)
 	}
 	if (val != new_val)
 	{
-		if (caninos_mmc_is_scc_en(host)) { /* this must not happen */
-			dev_err(priv->dev, "voltage switch with scc enabled\n");
+		scc_en = caninos_mmc_is_scc_en(host);
+		
+		if (scc_en) {
+			caninos_mmc_set_scc(host, false);
 		}
+		
 		writel(new_val, HOST_EN(priv));
-		caninos_mmc_voltage_change_delay(host);
+		
+		if (scc_en) {
+			caninos_mmc_set_scc(host, true);
+		}
 	}
 }
 

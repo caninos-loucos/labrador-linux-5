@@ -16,7 +16,7 @@ elif [ -d /run/media/${USER}/linux64 ]; then
 	LIBDIR=/run/media/${USER}/linux64/lib/
 else
 	echo "Error: linux64 directory not found or not mounted."
-	#exit 1
+	exit 1
 fi
 
 numArgs=3
@@ -84,7 +84,7 @@ echo "Copying files..."
 sudo cp ${outputDir}/Image ${BOOTDIR}
 sudo cp ${outputDir}/*.dtb ${BOOTDIR}
 sudo cp -r ${outputDir}/lib/modules ${LIBDIR}
-sync
+sudo sync
 
 echo "Kernel installed."
 exit 0

@@ -2,7 +2,7 @@
 /*
  * Caninos Labrador I2C Driver
  *
- * Copyright (c) 2022-2023 ITEX - LSITEC - Caninos Loucos
+ * Copyright (c) 2022-2024 ITEX - LSITEC - Caninos Loucos
  * Author: Edgar Bernardi Righi <edgar.righi@lsitec.org.br>
  *
  * Copyright (c) 2019 LSI-TEC - Caninos Loucos
@@ -380,16 +380,13 @@ static int caninos_i2c_do_transfer(struct caninos_i2c_dev *md,
 	return ret;
 }
 
-static int caninos_i2c_do_transfer_atomic(struct caninos_i2c_dev *md,
-                                          struct i2c_msg *msgs, int num)
+static int atomic_write_reg(struct caninos_i2c_dev *md,
+                            u32 bus_addr, u32 reg_addr, u8 *buf)
 {
-	u32 fifo_cmd, addr, stat, fifostat;
-	ktime_t timeout;
-	int i, ret;
+	int ret;
 	
-	if (!caninos_i2c_msg_is_valid(msgs, num)) {
-		return -EINVAL;
-	}
+	bus_addr &= 0x7f;
+	reg_addr &= 0xff;
 	
 	caninos_i2c_hwinit(md);
 	ret = caninos_i2c_wait_bus_busy(md);
@@ -399,125 +396,144 @@ static int caninos_i2c_do_transfer_atomic(struct caninos_i2c_dev *md,
 		return ret;
 	}
 	
-	addr = ((u32)(msgs[0].addr) & 0x7f) << 1;
+	/* write data count */
+	writel(2U, md->base + I2C_DATCNT);
 	
-	fifo_cmd = I2C_CMD_EXEC | I2C_CMD_MSS | I2C_CMD_SE | I2C_CMD_DE;
-	fifo_cmd |= I2C_CMD_NS | I2C_CMD_SBE;
+	/* write slave addr */
+	writel(bus_addr << 1, md->base + I2C_TXDAT);
 	
-	if (num == 2)
-	{
-		/* set internal address and restart cmd for read operation */
-		fifo_cmd |= I2C_CMD_AS(msgs[0].len + 1);
-		fifo_cmd |= I2C_CMD_SAS(1) | I2C_CMD_RBE;
-		
-		/* write i2c device address */
-		writel(addr, md->base + I2C_TXDAT);
-		
-		/* write internal register address */
-		for (i = 0; i < msgs[0].len; i++) {
-			writel(msgs[0].buf[i], md->base + I2C_TXDAT);
-		}
-		
-		md->msg = &msgs[1];
-		md->idx = 0U;
-	}
-	else
-	{
-		/* only send device addess for 1 message */
-		fifo_cmd |= I2C_CMD_AS(1);
-		
-		md->msg = &msgs[0];
-		md->idx = 0U;
-	}
+	/* write register addr */
+	writel(reg_addr, md->base + I2C_TXDAT);
 	
-	/* set data count for the message */
-	writel(md->msg->len, md->base + I2C_DATCNT);
+	/* write data */
+	writel(((u32)buf[0]) & 0xff, md->base + I2C_TXDAT);
+	writel(((u32)buf[1]) & 0xff, md->base + I2C_TXDAT);
 	
-	if (md->msg->flags & I2C_M_RD)
-	{
-		/* read from device, with WR bit */
-		writel(addr | 1U, md->base + I2C_TXDAT);
-		md->state = STATE_READ_DATA;
-	}
-	else
-	{
-		/* write to device */
-		writel(addr, md->base + I2C_TXDAT);
+	/* write fifo command */
+	writel(0x8d05, md->base + I2C_CMD);
+	
+	/* wait for the command to complete */
+	while (1) {
+		u32 val = readl(md->base + I2C_FIFOSTAT);
 		
-		/* write data to FIFO */
-		for (i = 0; i < md->msg->len; i++)
+		if (val & (0x1 << 1)) /* nack */
 		{
-			if (readl(md->base + I2C_FIFOSTAT) & I2C_FIFOSTAT_TFF) {
-				break;
-			}
-			writel(md->msg->buf[i], md->base + I2C_TXDAT);
+			/* clear error bit */
+			writel((0x1 << 1), md->base + I2C_FIFOSTAT);
+			
+			/* reset fifo */
+			writel(0x06, md->base + I2C_FIFOCTL);
+			/* flush */
+			readl(md->base + I2C_FIFOCTL);
+			
+			caninos_i2c_hwfini(md);
+			return -EREMOTEIO;
 		}
 		
-		md->idx = i;
-		md->state = STATE_WRITE_DATA;
-	}
-	
-	/* ignore the NACK if needed */
-	if (md->msg->flags & I2C_M_IGNORE_NAK) {
-		writel(I2C_FIFOCTL_NIB, md->base + I2C_FIFOCTL);
-	}
-	else {
-		writel(0U, md->base + I2C_FIFOCTL);
-	}
-	
-	/* write fifo command to start transfer */
-	writel(fifo_cmd, md->base + I2C_CMD);
-	
-	timeout = ktime_add_ms(ktime_get(), CANINOS_I2C_TIMEOUT_MS);
-	ret = 0;
-	
-	for (;;)
-	{
-		stat = readl(md->base + I2C_STAT);
-		fifostat = readl(md->base + I2C_FIFOSTAT);
-		
-		if (fifostat & I2C_FIFOSTAT_RNB) {
-			md->state = STATE_TRANSFER_ERROR;
-		}
-		else if (stat & I2C_STAT_LAB) {
-			md->state = STATE_TRANSFER_ERROR;
-		}
-		else if (stat & I2C_STAT_BEB) {
-			md->state = STATE_TRANSFER_ERROR;
-		}
-		else {
-			caninos_i2c_fifo_rw(md);
-		}
-		
-		readl(md->base + I2C_STAT); /* do not remove */
-		
-		if (md->state == STATE_TRANSFER_OVER) {
+		/* execute complete */
+		if (val & (0x1 << 0)) {
 			break;
 		}
-		if (md->state == STATE_TRANSFER_ERROR) {
-			ret = -ENXIO;
-			break;
-		}
-		if (ktime_compare(ktime_get(), timeout) > 0) {
-			ret = -EREMOTEIO;
-			break;
-		}
-		
-		cpu_relax();
 	}
+	
+	caninos_i2c_hwfini(md);
+	return 0;
+}
+
+static int atomic_read_reg(struct caninos_i2c_dev *md,
+                           u32 bus_addr, u32 reg_addr, u8 *buf)
+{
+	int ret;
+	
+	bus_addr &= 0x7f;
+	reg_addr &= 0xff;
+	
+	caninos_i2c_hwinit(md);
+	ret = caninos_i2c_wait_bus_busy(md);
 	
 	if (ret < 0) {
-		caninos_i2c_force_stop(md, addr);
+		caninos_i2c_hwfini(md);
+		return ret;
 	}
+	
+	/* write data count */
+	writel(2U, md->base + I2C_DATCNT);
+	
+	/* write slave addr */
+	writel(bus_addr << 1, md->base + I2C_TXDAT);
+	
+	/* write register addr */
+	writel(reg_addr, md->base + I2C_TXDAT);
+	
+	/* write (slave addr | read_flag) */
+	writel((bus_addr << 1) | 0x1, md->base + I2C_TXDAT);
+	
+	/* write fifo command */
+	writel(0x8f35, md->base + I2C_CMD);
+	
+	/* wait command complete */
+	while (1) {
+		u32 val = readl(md->base + I2C_FIFOSTAT);
+		
+		if (val & (0x1 << 1)) /* nack */
+		{
+			/* clear error bit */
+			writel((0x1 << 1), md->base + I2C_FIFOSTAT);
+			
+			/* reset fifo */
+			writel(0x06, md->base + I2C_FIFOCTL);
+			/* flush */
+			readl(md->base + I2C_FIFOCTL);
+			
+			caninos_i2c_hwfini(md);
+			return -EREMOTEIO;
+		}
+		
+		/* execute complete */
+		if (val & (0x1 << 0)) {
+			break;
+		}
+	}
+	
+	/* read data from rxdata */
+	buf[0] = (u8)readl(md->base + I2C_RXDAT);
+	buf[1] = (u8)readl(md->base + I2C_RXDAT);
+	
 	caninos_i2c_hwfini(md);
-	return ret;
+	return 0;
 }
 
 static int caninos_i2c_xfer_atomic(struct i2c_adapter *adap,
                                    struct i2c_msg *msgs, int num)
 {
 	struct caninos_i2c_dev *md = i2c_get_adapdata(adap);
+	u8 reg_addr, bus_addr;
+	bool read_op = false;
 	int ret;
+	
+	if (num == 1) {
+		if (msgs[0].len != 3) {
+			return -EINVAL;
+		}
+		if (msgs[0].flags & I2C_M_RD) {
+			return -EINVAL;
+		}
+	}
+	else if (num == 2) {
+		if ((msgs[0].len != 1) || (msgs[1].len != 2)) {
+			return -EINVAL;
+		}
+		if (!(msgs[1].flags & I2C_M_RD)) {
+			return -EINVAL;
+		}
+		read_op = true;
+	}
+	else {
+		return -EINVAL;
+	}
+	
+	bus_addr = msgs[0].addr;
+	reg_addr = msgs[0].buf[0];
 	
 	if (md->extio_state) {
 		if (pinctrl_select_state(md->pctl, md->extio_state) < 0) {
@@ -525,12 +541,16 @@ static int caninos_i2c_xfer_atomic(struct i2c_adapter *adap,
 		}
 	}
 	
-	ret = caninos_i2c_do_transfer_atomic(md, msgs, num);
+	if (read_op) {
+		ret = atomic_read_reg(md, bus_addr, reg_addr, msgs[1].buf);
+	}
+	else {
+		ret = atomic_write_reg(md, bus_addr, reg_addr, msgs[0].buf + 1);
+	}
 	
 	if (md->extio_state) {
 		pinctrl_select_state(md->pctl, md->def_state);
 	}
-	
 	return (ret < 0) ? ret : num;
 }
 

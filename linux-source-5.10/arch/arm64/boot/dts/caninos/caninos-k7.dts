@@ -52,8 +52,6 @@
 };
 
 &emac {
-	pinctrl-names = "default";
-	pinctrl-0 = <&eth_state_rmii>;
 	phy-mode = "rmii";
 	max-speed = <100>;
 

@@ -675,10 +675,14 @@
 			reg = <0x0 0xe0220000 0 0x2000>;
 			interrupts = <GIC_SPI 55 IRQ_TYPE_LEVEL_HIGH>;
 			interrupt-names = "macirq";
-			clocks = <&clk25m>, <&cmu CLK_ETHERNET>, <&cmu CLK_RMII_REF>;
-			clock-names = "stmmaceth", "eth", "rmii";
+			clocks = <&cmu CLK_ETHERNET>, <&cmu CLK_RMII_REF>;
+			clock-names = "stmmaceth", "rmii";
 			resets = <&rst RST_ETHERNET>;
 			reset-names = "stmmaceth";
+			
+			pinctrl-names = "rmii", "rgmii";
+			pinctrl-0 = <&eth_state_rmii>;
+			pinctrl-1 = <&eth_state_rgmii>;
 			
 			phy-handle = <&phy0>;
 			

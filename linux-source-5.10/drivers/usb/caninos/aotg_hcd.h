@@ -298,7 +298,7 @@ struct aotg_hcep {
 
 static inline struct aotg_hcd *hcd_to_aotg(struct usb_hcd *hcd)
 {
-	return (struct aotg_hcd *) (hcd->hcd_priv);
+	return (!hcd) ? NULL : ((struct aotg_hcd *) hcd->hcd_priv);
 }
 
 static inline void aotg_clear_all_overflow_irq(struct aotg_hcd *acthcd)

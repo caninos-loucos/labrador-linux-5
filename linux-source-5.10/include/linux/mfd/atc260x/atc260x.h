@@ -43,6 +43,8 @@ enum {
 
 struct atc260x_dev;
 
+extern int atc260x_reg_setbits(struct atc260x_dev *atc260x,
+                               uint reg, u16 msk, u16 val);
 extern int atc260x_reg_read(struct atc260x_dev *atc260x, uint reg);
 extern int atc260x_reg_write(struct atc260x_dev *atc260x, uint reg, u16 val);
 
