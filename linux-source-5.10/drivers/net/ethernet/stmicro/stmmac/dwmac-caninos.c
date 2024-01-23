@@ -49,18 +49,18 @@ static int caninos_gmac_get_gpios(struct caninos_priv_data *gmac)
 		return -ENODEV;
 	}
 	
-	gmac->power_gpio = of_get_named_gpio(dev->of_node, "phy-power-gpio", 0);
-	
-	if (!gpio_is_valid(gmac->power_gpio)) {
-		dev_err(dev, "unable to get power gpio\n");
-		return -ENODEV;
-	}
-	
 	ret = devm_gpio_request(dev, gmac->reset_gpio, "phy_reset");
 	
 	if (ret) {
 		dev_err(dev, "unable to request reset gpio\n");
 		return ret;
+	}
+	
+	gmac->power_gpio = of_get_named_gpio(dev->of_node, "phy-power-gpio", 0);
+	
+	if (!gpio_is_valid(gmac->power_gpio)) {
+		dev_info(dev, "not using power gpio");
+		return 0;
 	}
 	
 	ret = devm_gpio_request(dev, gmac->power_gpio, "phy_power");
@@ -152,13 +152,15 @@ static int caninos_gmac_init(struct platform_device *pdev, void *priv)
 	
 	/* power up the phy */
 	gpio_direction_output(gmac->reset_gpio, 1);
-	gpio_direction_output(gmac->power_gpio, 1);
+	if (gpio_is_valid(gmac->power_gpio)) {
+		gpio_direction_output(gmac->power_gpio, 1);
+	}
 	msleep(150); /* time for power up */
 	
 	/* reset the phy */
-	gpio_set_value(gmac->reset_gpio, 0);
+	gpio_set_value_cansleep(gmac->reset_gpio, 0);
 	usleep_range(12000, 15000); /* time for reset */
-	gpio_set_value(gmac->reset_gpio, 1);
+	gpio_set_value_cansleep(gmac->reset_gpio, 1);
 	msleep(150); /* time required to access registers */
 	
 	return 0;
@@ -171,8 +173,10 @@ static void caninos_gmac_exit(struct platform_device *pdev, void *priv)
 	clk_disable_unprepare(gmac->ref_clk);
 	gmac->speed = 0;
 	
-	gpio_set_value(gmac->reset_gpio, 0);
-	gpio_set_value(gmac->power_gpio, 0); /* power off the phy */
+	gpio_set_value_cansleep(gmac->reset_gpio, 0);
+	if (gpio_is_valid(gmac->power_gpio)) {
+		gpio_set_value_cansleep(gmac->power_gpio, 0); /* power off the phy */
+	}
 }
 
 static int caninos_gmac_probe(struct platform_device *pdev)
