@@ -1,5 +1,9 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 f871633968a814e3cc5ebfbdaec1178610e12df70be8c10b07ac6f682ee0717c  labrador-kernel5-aarch64-v01.tar.gz
 =======
 fa7e1f5f8618fae1d4836d0450664f8adcd8946798eb5999f6d72a2b3161c70f  labrador-kernel5-aarch64-v01.tar.gz
 >>>>>>> d9a0da731 (Fixed inconsistent poweroff-reboot behavior. Fixed broken i2c atomic write. Added shutdown routines to DMA and USB2 drivers.)
+=======
+d21954473024eeaa0e00ac6d67f0e39ad3a3d999c5df6de59aab6c9afdadb642  labrador-kernel5-aarch64-v01.tar.gz
+>>>>>>> b36848cdb (Replaced gpio atomic operations with sleeping ones at k7 ethmac driver.)

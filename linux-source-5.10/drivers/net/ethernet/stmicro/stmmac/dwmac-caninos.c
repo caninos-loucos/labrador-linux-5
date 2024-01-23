@@ -48,24 +48,27 @@ static int caninos_gmac_get_gpios(struct caninos_priv_data *gmac)
 	if (!gpio_is_valid(gmac->reset_gpio)) {
 		dev_err(dev, "unable to get reset gpio\n");
 		return -ENODEV;
-	} else {
-		ret = devm_gpio_request(dev, gmac->reset_gpio, "phy_reset");
-		if (ret) {
-			dev_err(dev, "unable to request reset gpio\n");
-			return ret;
-		}
-	}
+	} 
 	
 	gmac->power_gpio = of_get_named_gpio(dev->of_node, "phy-power-gpio", 0);
 	
 	if (!gpio_is_valid(gmac->power_gpio)) {
-		dev_info(dev, "not using power gpio");
-	} else {
-		ret = devm_gpio_request(dev, gmac->power_gpio, "phy_power");
-		if (ret){
-			dev_err(dev, "unable to request power gpio\n");
-			return ret;
-		}
+		dev_err(dev, "unable to get power gpio\n");
+		return -ENODEV;
+	}
+	
+	ret = devm_gpio_request(dev, gmac->reset_gpio, "phy_reset");
+	
+	if (ret) {
+		dev_err(dev, "unable to request reset gpio\n");
+		return ret;
+	}
+	
+	ret = devm_gpio_request(dev, gmac->power_gpio, "phy_power");
+	
+	if (ret) {
+		dev_err(dev, "unable to request power gpio\n");
+		return ret;
 	}
 
 	return 0;
