@@ -48,35 +48,6 @@
 #define DRIVER_NAME "caninos-drm"
 #define DRIVER_DESC "Caninos Labrador DRM/KMS driver"
 
-DEFINE_DRM_GEM_CMA_FOPS(caninos_fops);
-
-static struct drm_driver caninos_drm_driver = {
-	.driver_features = DRIVER_GEM | DRIVER_MODESET | DRIVER_ATOMIC,
-	.fops            = &caninos_fops,
-	.name            = DRIVER_NAME,
-	.desc            = DRIVER_DESC,
-	.date            = "20230908",
-	.major           = 1,
-	.minor           = 4,
-	DRM_GEM_CMA_DRIVER_OPS_VMAP,
-};
-
-static int caninos_connector_get_modes(struct drm_connector *connector)
-{
-	struct drm_device *drm = connector->dev;
-	int count, max_width, max_height;
-	
-	max_width = drm->mode_config.max_width;
-	max_height = drm->mode_config.max_height;
-	
-	count = drm_add_modes_noedid(connector, max_width, max_height);
-	
-	if (count) {
-		drm_set_preferred_mode(connector, 1920, 1080);
-	}
-	return count;
-}
-
 static void caninos_update(struct drm_simple_display_pipe *pipe,
                            struct drm_plane_state *plane_state)
 {
@@ -185,14 +156,45 @@ caninos_mode_valid(struct drm_simple_display_pipe *pipe,
 	return MODE_BAD;
 }
 
-static struct drm_simple_display_pipe_funcs caninos_gfx_funcs = {
+static const uint32_t caninos_pipe_formats[] = {
+	DRM_FORMAT_XRGB8888,
+};
+
+static struct drm_simple_display_pipe_funcs caninos_pipe_funcs = {
 	.mode_valid = caninos_mode_valid,
 	.enable     = caninos_enable,
 	.update     = caninos_update,
 	.prepare_fb = drm_gem_fb_simple_display_pipe_prepare_fb,
 };
 
-static const struct drm_connector_funcs caninos_connector_funcs = {
+static int caninos_gfx_pipe_init(struct caninos_gfx *priv)
+{
+	return drm_simple_display_pipe_init(&priv->drm, &priv->pipe, 
+	                                    &caninos_pipe_funcs,
+	                                    caninos_pipe_formats,
+	                                    ARRAY_SIZE(caninos_pipe_formats),
+	                                    NULL, &priv->connector);
+}
+
+/// ------------------------------------------------------------------------ ///
+
+static int caninos_conn_get_modes(struct drm_connector *connector)
+{
+	struct drm_device *drm = connector->dev;
+	int count, max_width, max_height;
+	
+	max_width = drm->mode_config.max_width;
+	max_height = drm->mode_config.max_height;
+	
+	count = drm_add_modes_noedid(connector, max_width, max_height);
+	
+	if (count) {
+		drm_set_preferred_mode(connector, 1920, 1080);
+	}
+	return count;
+}
+
+static const struct drm_connector_funcs caninos_conn_funcs = {
 	.fill_modes             = drm_helper_probe_single_connector_modes,
 	.destroy                = drm_connector_cleanup,
 	.reset                  = drm_atomic_helper_connector_reset,
@@ -200,9 +202,22 @@ static const struct drm_connector_funcs caninos_connector_funcs = {
 	.atomic_destroy_state   = drm_atomic_helper_connector_destroy_state,
 };
 
-static const struct drm_connector_helper_funcs caninos_connector_helper = {
-	.get_modes = caninos_connector_get_modes,
+static const struct drm_connector_helper_funcs caninos_conn_helper = {
+	.get_modes = caninos_conn_get_modes,
 };
+
+static int caninos_conn_init(struct caninos_gfx *priv)
+{
+	priv->connector.dpms = DRM_MODE_DPMS_OFF;
+	priv->connector.polled = 0;
+	
+	drm_connector_helper_add(&priv->connector, &caninos_conn_helper);
+	
+	return drm_connector_init(&priv->drm, &priv->connector,
+	                          &caninos_conn_funcs, DRM_MODE_CONNECTOR_HDMIA);
+}
+
+/// ------------------------------------------------------------------------ ///
 
 static const struct drm_mode_config_funcs caninos_mode_config_funcs = {
 	.fb_create     = drm_gem_fb_create,
@@ -210,16 +225,16 @@ static const struct drm_mode_config_funcs caninos_mode_config_funcs = {
 	.atomic_commit = drm_atomic_helper_commit,
 };
 
-static const uint32_t caninos_gfx_formats[] = {
-	DRM_FORMAT_XRGB8888,
-};
-
-static int caninos_gfx_pipe_init(struct drm_device *drm)
+static int caninos_mode_config_init(struct caninos_gfx *priv)
 {
-	struct caninos_gfx *priv = drm->dev_private;
+	struct drm_device *drm = &priv->drm;
 	int ret;
 	
-	drm_mode_config_init(drm);
+	ret = drmm_mode_config_init(drm);
+	
+	if (ret) {
+		return ret;
+	}
 	
 	drm->mode_config.min_width = 480;
 	drm->mode_config.min_height = 480;
@@ -228,23 +243,23 @@ static int caninos_gfx_pipe_init(struct drm_device *drm)
 	
 	drm->mode_config.funcs = &caninos_mode_config_funcs;
 	
-	priv->connector.dpms = DRM_MODE_DPMS_OFF;
-	priv->connector.polled = 0;
-	
-	drm_connector_helper_add(&priv->connector, &caninos_connector_helper);
-	
-	ret = drm_connector_init(drm, &priv->connector, &caninos_connector_funcs,
-	                         DRM_MODE_CONNECTOR_HDMIA);
-	
-	if (ret < 0) {
-		return ret;
-	}
-	
-	return drm_simple_display_pipe_init(drm, &priv->pipe, &caninos_gfx_funcs,
-	                                    caninos_gfx_formats,
-	                                    ARRAY_SIZE(caninos_gfx_formats),
-	                                    NULL, &priv->connector);
+	return 0;
 }
+
+/// ------------------------------------------------------------------------ ///
+
+DEFINE_DRM_GEM_CMA_FOPS(caninos_fops);
+
+static struct drm_driver caninos_drm_driver = {
+	.driver_features = DRIVER_GEM | DRIVER_MODESET | DRIVER_ATOMIC,
+	.fops            = &caninos_fops,
+	.name            = DRIVER_NAME,
+	.desc            = DRIVER_DESC,
+	.date            = "20230908",
+	.major           = 1,
+	.minor           = 4,
+	DRM_GEM_CMA_DRIVER_OPS_VMAP,
+};
 
 static inline void *caninos_get_drvdata_by_node(struct device_node *np)
 {
@@ -271,14 +286,12 @@ static int caninos_drm_probe(struct platform_device *pdev)
 		return ret;
 	}
 	
-	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
+	priv = devm_drm_dev_alloc(dev, &caninos_drm_driver, struct caninos_gfx, drm);
 	
-	if (!priv) {
-		dev_err(dev, "unable to allocate private data structure\n");
-		return -ENOMEM;
+	if (IS_ERR(priv)) {
+		dev_err(dev, "unable to allocate drm device\n");
+		return PTR_ERR(priv);
 	}
-	
-	priv->dev = dev;
 	
 	np = of_parse_phandle(dev->of_node, "hdmi-controller", 0);
 	
@@ -302,51 +315,47 @@ static int caninos_drm_probe(struct platform_device *pdev)
 		return -EPROBE_DEFER;
 	}
 	
-	priv->drm = drm_dev_alloc(&caninos_drm_driver, dev);
-	
-	if (IS_ERR(priv->drm)) {
-		dev_err(dev, "unable to allocate drm device\n");
-		return PTR_ERR(priv->drm);
-	}
-	
-	priv->drm->dev_private = priv;
-	
-	ret = caninos_gfx_pipe_init(priv->drm);
+	ret = caninos_mode_config_init(priv);
 	
 	if (ret) {
-	    dev_err(dev, "could not setup display pipe\n");
-		goto err_free;
+		dev_err(dev, "mode config init failed\n");
+		return ret;
 	}
 	
-	drm_mode_config_reset(priv->drm);
-	
-	ret = drm_dev_register(priv->drm, 0);
+	ret = caninos_conn_init(priv);
 	
 	if (ret) {
-		goto err_unload;
+		dev_err(dev, "connector init failed\n");
+		return ret;
 	}
 	
-	drm_fbdev_generic_setup(priv->drm, 32);
+	ret = caninos_gfx_pipe_init(priv);
+	
+	if (ret) {
+	    dev_err(dev, "could not init display pipe\n");
+		return ret;
+	}
+	
+	drm_mode_config_reset(&priv->drm);
+	
+	ret = drm_dev_register(&priv->drm, 0);
+	
+	if (ret) {
+		drm_kms_helper_poll_fini(&priv->drm);
+		return ret;
+	}
+	
+	drm_fbdev_generic_setup(&priv->drm, 32);
 	return 0;
-	
-err_unload:
-	drm_kms_helper_poll_fini(priv->drm);
-	drm_mode_config_cleanup(priv->drm);
-	priv->drm->dev_private = NULL;
-	
-err_free:
-	drm_dev_put(priv->drm);
-	return ret;
 }
 
 static int caninos_drm_remove(struct platform_device *pdev)
 {
 	struct drm_device *drm = platform_get_drvdata(pdev);
+	
 	drm_dev_unregister(drm);
 	drm_kms_helper_poll_fini(drm);
-	drm_mode_config_cleanup(drm);
-	drm->dev_private = NULL;
-	drm_dev_put(drm);
+	
 	return 0;
 }
 
