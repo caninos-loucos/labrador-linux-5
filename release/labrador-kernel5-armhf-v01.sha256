@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ed92ea29a1b60b94030417beed424d38c6173bfa76177619bf372052771dffe6  labrador-kernel5-armhf-v01.tar.gz
 =======
 085c8925dc7462a7837fc1954d4988d63d786fa2a1210beff0974c52393812e6  labrador-kernel5-armhf-v01.tar.gz
@@ -7,3 +8,6 @@ ed92ea29a1b60b94030417beed424d38c6173bfa76177619bf372052771dffe6  labrador-kerne
 =======
 0dc614454983026b8e3675b91d479a9b38a8ff4340d301bcb001ad988dc32ac2  labrador-kernel5-armhf-v01.tar.gz
 >>>>>>> b36848cdb (Replaced gpio atomic operations with sleeping ones at k7 ethmac driver.)
+=======
+17232e1fbb91b94ff87a9474657bc6a23a5ee3de7e6f10adf3024e810b8880d1  labrador-kernel5-armhf-v01.tar.gz
+>>>>>>> 1f0ac4647 (Minor modifications to caninos-drm driver in anticipation of future addition of new features.)
