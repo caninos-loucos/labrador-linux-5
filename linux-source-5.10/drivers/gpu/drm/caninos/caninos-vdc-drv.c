@@ -34,6 +34,51 @@
 #define DE_DEF_HEIGHT (1920U)
 #define DE_DEF_FORMAT (DRM_FORMAT_XRGB8888)
 
+int caninos_vdc_request_irq(struct caninos_vdc *priv,
+                            irq_handler_t handler, void *cookie)
+{
+	unsigned long flags;
+	
+	if (!priv || !cookie || !handler) {
+		return -EINVAL;
+	}
+	
+	spin_lock_irqsave(&priv->lock, flags);
+	
+	if (!priv->irq.handler) {
+		priv->irq.handler = handler;
+		priv->irq.cookie = cookie;
+		spin_unlock_irqrestore(&priv->lock, flags);
+		return 0;
+	}
+	else {
+		spin_unlock_irqrestore(&priv->lock, flags);
+		return -ENOMEM;
+	}
+}
+
+int caninos_vdc_free_irq(struct caninos_vdc *priv, void *cookie)
+{
+	unsigned long flags;
+	
+	if (!priv || !cookie) {
+		return -EINVAL;
+	}
+	
+	spin_lock_irqsave(&priv->lock, flags);
+	
+	if (priv->irq.cookie == cookie) {
+		priv->irq.handler = NULL;
+		priv->irq.cookie = NULL;
+		spin_unlock_irqrestore(&priv->lock, flags);
+		return 0;
+	}
+	else {
+		spin_unlock_irqrestore(&priv->lock, flags);
+		return -EINVAL;
+	}
+}
+
 int caninos_vdc_set_mode(struct caninos_vdc *priv,
                          struct caninos_vdc_mode *mode)
 {
@@ -78,16 +123,12 @@ int caninos_vdc_set_fbaddr(struct caninos_vdc *priv, u32 fbaddr)
 {
 	unsigned long flags;
 	
-	if (!priv) {
+	if (!priv || !fbaddr) {
 		return -EINVAL;
-	}
-	if (!fbaddr) {
-		fbaddr = (u32)priv->mem_phys;
 	}
 	
 	spin_lock_irqsave(&priv->lock, flags);
-	smp_wmb();
-	WRITE_ONCE(priv->next.fbaddr, fbaddr);
+	priv->next.fbaddr = fbaddr;
 	spin_unlock_irqrestore(&priv->lock, flags);
 	
 	return 0;
@@ -125,8 +166,8 @@ int caninos_vdc_enable(struct caninos_vdc *priv)
 	
 	if (!de_is_enabled(priv))
 	{
-		priv->fbaddr = (u32)priv->mem_phys;
 		priv->mode = priv->next.mode;
+		priv->fbaddr = priv->next.fbaddr;
 		
 		de_set_size(priv, priv->mode.width, priv->mode.height);
 		de_set_stride(priv, de_calc_stride(priv->mode.width, 32U));
@@ -154,11 +195,14 @@ static irqreturn_t caninos_vdc_irq(int irq, void *data)
 		
 		if (de_is_enabled(priv))
 		{
+			if (priv->irq.handler) {
+				priv->irq.handler(priv->irq.number, priv->irq.cookie);
+			}
+			
 			fbaddr = READ_ONCE(priv->next.fbaddr);
 			smp_rmb();
 			
-			if (priv->fbaddr != fbaddr)
-			{
+			if (priv->fbaddr != fbaddr) {
 				priv->fbaddr = fbaddr;
 				de_set_framebuffer(priv, fbaddr);
 			}
@@ -171,42 +215,6 @@ static irqreturn_t caninos_vdc_irq(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-static inline int caninos_vdc_get_reserved_memory(struct caninos_vdc *priv)
-{
-	struct device *dev = priv->dev;
-	struct device_node *mem_np;
-	struct resource res;
-	void *mem_virt;
-	int ret;
-	
-	mem_np = of_parse_phandle(dev->of_node, "memory-region", 0);
-	
-	if (!mem_np) {
-		dev_err(dev, "unable to parse memory-region phandle\n");
-		return -EINVAL;
-	}
-	
-	ret = of_address_to_resource(mem_np, 0, &res);
-	of_node_put(mem_np);
-	
-	if (ret < 0) {
-		dev_err(dev, "unable to get memory-region resource\n");
-		return ret;
-	}
-	
-	mem_virt = devm_memremap(dev, res.start, resource_size(&res), MEMREMAP_WC);
-	
-	if (!mem_virt) {
-		dev_err(dev, "unable to map memory-region resource\n");
-		return -ENOMEM;
-	}
-	
-	priv->mem_virt = mem_virt;
-	priv->mem_phys = res.start;
-	priv->mem_size = resource_size(&res);
-	return 0;
-}
-
 static int caninos_vdc_probe(struct platform_device *pdev)
 {
 	struct device_node *np = pdev->dev.of_node;
@@ -214,7 +222,6 @@ static int caninos_vdc_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct caninos_vdc *priv;
 	struct resource *res;
-	u32 stride, total;
 	int ret;
 	
 	if (!np) {
@@ -237,31 +244,16 @@ static int caninos_vdc_probe(struct platform_device *pdev)
 	}
 	
 	priv->dev = dev;
+	priv->irq.handler = NULL;
+	priv->irq.cookie = NULL;
+	priv->irq.number = -EINVAL;
 	spin_lock_init(&priv->lock);
-	
-	/* get reserved memory */
-	if ((ret = caninos_vdc_get_reserved_memory(priv)) < 0) {
-		return ret;
-	}
-	
-	/* set next fbaddr to the reserved memory region */
-	priv->next.fbaddr = (u32)priv->mem_phys;
 	
 	/* set next mode to the default mode */
 	priv->next.mode.width  = DE_DEF_WIDTH;
 	priv->next.mode.height = DE_DEF_HEIGHT;
 	priv->next.mode.format = DE_DEF_FORMAT;
-	
-	/* currently all supported color formats are 32bpp */
-	stride = de_calc_stride(DE_MAX_WIDTH, 32U);
-	
-	/* ensure that the largest possible framebuffer fits in the resvd mem */
-	total = stride * DE_MAX_HEIGHT;
-	
-	if (total > priv->mem_size) {
-		dev_err(priv->dev, "insufficient reserved memory\n");
-		return -ENOMEM;
-	}
+	priv->next.fbaddr = 0U;
 	
 	match = of_match_device(dev->driver->of_match_table, dev);
 	
@@ -308,11 +300,11 @@ static int caninos_vdc_probe(struct platform_device *pdev)
 		return PTR_ERR(priv->rst);
 	}
 	
-	priv->irq = platform_get_irq(pdev, 0);
+	priv->irq.number = platform_get_irq(pdev, 0);
 	
-	if (priv->irq < 0) {
+	if (priv->irq.number < 0) {
 		dev_err(dev, "unable to get irq number\n");
-		return priv->irq;
+		return priv->irq.number;
 	}
 	
 	priv->clk = devm_clk_get(dev, "de");
@@ -331,24 +323,11 @@ static int caninos_vdc_probe(struct platform_device *pdev)
 	}
 	
 	/* register irq routine */
-	ret = devm_request_irq(dev, priv->irq, caninos_vdc_irq, 0,
+	ret = devm_request_irq(dev, priv->irq.number, caninos_vdc_irq, 0,
 	                       dev_name(dev), priv);
 	
 	if (ret < 0) {
-		dev_err(dev, "unable to request irq %d\n", priv->irq);
-		de_fini(priv);
-		return ret;
-	}
-	
-	/* clear the reserved memory */
-	memset(priv->mem_virt, 0x0, total);
-	smp_mb();
-	
-	/* set initial state */
-	ret = caninos_vdc_enable(priv);
-	
-	if (ret < 0) {
-		dev_err(dev, "unable to set display engine initial state\n");
+		dev_err(dev, "unable to request irq %d\n", priv->irq.number);
 		de_fini(priv);
 		return ret;
 	}

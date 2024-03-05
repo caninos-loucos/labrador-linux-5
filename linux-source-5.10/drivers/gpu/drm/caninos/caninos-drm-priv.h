@@ -27,9 +27,9 @@
 
 struct caninos_gfx
 {
+	struct drm_device drm;
 	struct drm_simple_display_pipe pipe;
 	struct drm_connector connector;
-	struct drm_device drm;
 	struct caninos_hdmi *caninos_hdmi;
 	struct caninos_vdc *caninos_vdc;
 };

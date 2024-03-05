@@ -72,4 +72,8 @@ extern int caninos_vdc_enable(struct caninos_vdc*);
 
 extern int caninos_vdc_set_fbaddr(struct caninos_vdc*, u32);
 
+extern int caninos_vdc_request_irq(struct caninos_vdc*, irq_handler_t, void*);
+
+extern int caninos_vdc_free_irq(struct caninos_vdc*, void*);
+
 #endif /* _CANINOS_DRM_H_ */
