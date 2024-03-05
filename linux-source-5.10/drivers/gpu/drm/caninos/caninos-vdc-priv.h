@@ -25,6 +25,7 @@
 #include <linux/spinlock.h>
 #include <linux/reset.h>
 #include <linux/clk.h>
+#include <linux/interrupt.h>
 
 #include "caninos-drm.h"
 
@@ -58,11 +59,6 @@ struct caninos_vdc {
 	void __iomem *base;
 	struct reset_control *rst;
 	struct clk *clk;
-	int irq;
-	
-	void *mem_virt;
-	phys_addr_t mem_phys;
-	size_t mem_size;
 	
 	const struct de_hw_ops *ops;
 	spinlock_t lock;
@@ -74,6 +70,12 @@ struct caninos_vdc {
 		struct caninos_vdc_mode mode;
 		u32 fbaddr;
 	} next;
+	
+	struct {
+		int number;
+		irq_handler_t handler;
+		void *cookie;
+	} irq;
 };
 
 static inline u32 de_calc_stride(u32 width, u32 bits_per_pixel) {

@@ -62,7 +62,11 @@ static void caninos_update(struct drm_simple_display_pipe *pipe,
 	
 	if (event) {
 		crtc->state->event = NULL;
-		drm_crtc_send_vblank_event(crtc, event);
+
+		if (drm_crtc_vblank_get(crtc) == 0)
+			drm_crtc_arm_vblank_event(crtc, event);
+		else
+			drm_crtc_send_vblank_event(crtc, event);
 	}
 	
 	spin_unlock_irq(&crtc->dev->event_lock);
@@ -129,6 +133,29 @@ static void caninos_enable(struct drm_simple_display_pipe *pipe,
 	caninos_vdc_enable(caninos_vdc);
 	
 	caninos_hdmi_enable(caninos_hdmi);
+	
+	drm_crtc_vblank_on(&pipe->crtc);
+}
+
+static void caninos_disable(struct drm_simple_display_pipe *pipe)
+{
+	struct caninos_gfx *priv = container_of(pipe, struct caninos_gfx, pipe);
+	struct caninos_hdmi *caninos_hdmi = priv->caninos_hdmi;
+	struct caninos_vdc *caninos_vdc = priv->caninos_vdc;
+	
+	drm_crtc_vblank_off(&pipe->crtc);
+	caninos_hdmi_disable(caninos_hdmi);
+	caninos_vdc_disable(caninos_vdc);
+}
+
+static int caninos_enable_vblank(struct drm_simple_display_pipe *pipe)
+{
+	return 0;
+}
+
+static void caninos_disable_vblank(struct drm_simple_display_pipe *pipe)
+{
+	return;
 }
 
 static enum drm_mode_status
@@ -161,10 +188,13 @@ static const uint32_t caninos_pipe_formats[] = {
 };
 
 static struct drm_simple_display_pipe_funcs caninos_pipe_funcs = {
-	.mode_valid = caninos_mode_valid,
-	.enable     = caninos_enable,
-	.update     = caninos_update,
-	.prepare_fb = drm_gem_fb_simple_display_pipe_prepare_fb,
+	.mode_valid     = caninos_mode_valid,
+	.enable         = caninos_enable,
+	.disable        = caninos_disable,
+	.update         = caninos_update,
+	.enable_vblank  = caninos_enable_vblank,
+	.disable_vblank = caninos_disable_vblank,
+	.prepare_fb     = drm_gem_fb_simple_display_pipe_prepare_fb,
 };
 
 static int caninos_gfx_pipe_init(struct caninos_gfx *priv)
@@ -250,7 +280,7 @@ static int caninos_mode_config_init(struct caninos_gfx *priv)
 
 DEFINE_DRM_GEM_CMA_FOPS(caninos_fops);
 
-static struct drm_driver caninos_drm_driver = {
+static struct drm_driver caninos_drm_drv = {
 	.driver_features = DRIVER_GEM | DRIVER_MODESET | DRIVER_ATOMIC,
 	.fops            = &caninos_fops,
 	.name            = DRIVER_NAME,
@@ -267,10 +297,25 @@ static inline void *caninos_get_drvdata_by_node(struct device_node *np)
 	return pdev ? platform_get_drvdata(pdev) : NULL;
 }
 
-static int caninos_drm_probe(struct platform_device *pdev)
+static irqreturn_t caninos_drm_irq_handler(int irq, void *data)
 {
-	struct device *dev = &pdev->dev;
-	struct caninos_gfx *priv;
+	struct drm_device *drm = data;
+	struct caninos_gfx *priv = container_of(drm, struct caninos_gfx, drm);
+	drm_crtc_handle_vblank(&priv->pipe.crtc);
+	return IRQ_HANDLED;
+}
+
+static void caninos_drm_unload(struct drm_device *drm)
+{
+	struct caninos_gfx *priv = container_of(drm, struct caninos_gfx, drm);
+	caninos_vdc_free_irq(priv->caninos_vdc, drm);
+	drm_kms_helper_poll_fini(drm);
+}
+
+static int caninos_drm_load(struct drm_device *drm)
+{
+	struct caninos_gfx *priv = container_of(drm, struct caninos_gfx, drm);
+	struct device *dev = drm->dev;
 	struct device_node *np;
 	int ret;
 	
@@ -286,11 +331,11 @@ static int caninos_drm_probe(struct platform_device *pdev)
 		return ret;
 	}
 	
-	priv = devm_drm_dev_alloc(dev, &caninos_drm_driver, struct caninos_gfx, drm);
+	ret = of_reserved_mem_device_init(dev);
 	
-	if (IS_ERR(priv)) {
-		dev_err(dev, "unable to allocate drm device\n");
-		return PTR_ERR(priv);
+	if (ret) {
+		dev_err(dev, "failed to initialize reserved mem: %d\n", ret);
+		return ret;
 	}
 	
 	np = of_parse_phandle(dev->of_node, "hdmi-controller", 0);
@@ -322,6 +367,13 @@ static int caninos_drm_probe(struct platform_device *pdev)
 		return ret;
 	}
 	
+	ret = drm_vblank_init(drm, 1);
+	
+	if (ret) {
+		dev_err(dev, "failed to initialise vblank\n");
+		return ret;
+	}
+	
 	ret = caninos_conn_init(priv);
 	
 	if (ret) {
@@ -336,12 +388,42 @@ static int caninos_drm_probe(struct platform_device *pdev)
 		return ret;
 	}
 	
-	drm_mode_config_reset(&priv->drm);
+	ret = caninos_vdc_request_irq(priv->caninos_vdc,
+	                              caninos_drm_irq_handler, drm);
+	
+	if (ret) {
+		dev_err(dev, "failed to install irq handler\n");
+		return ret;
+	}
+	
+	drm_mode_config_reset(drm);
+	
+	return 0;
+}
+
+static int caninos_drm_probe(struct platform_device *pdev)
+{
+	struct device *dev = &pdev->dev;
+	struct caninos_gfx *priv;
+	int ret;
+	
+	priv = devm_drm_dev_alloc(dev, &caninos_drm_drv, struct caninos_gfx, drm);
+	
+	if (IS_ERR(priv)) {
+		dev_err(dev, "unable to allocate drm device\n");
+		return PTR_ERR(priv);
+	}
+	
+	ret = caninos_drm_load(&priv->drm);
+	
+	if (ret) {
+		return ret;
+	}
 	
 	ret = drm_dev_register(&priv->drm, 0);
 	
 	if (ret) {
-		drm_kms_helper_poll_fini(&priv->drm);
+		caninos_drm_unload(&priv->drm);
 		return ret;
 	}
 	
@@ -354,7 +436,7 @@ static int caninos_drm_remove(struct platform_device *pdev)
 	struct drm_device *drm = platform_get_drvdata(pdev);
 	
 	drm_dev_unregister(drm);
-	drm_kms_helper_poll_fini(drm);
+	caninos_drm_unload(drm);
 	
 	return 0;
 }
