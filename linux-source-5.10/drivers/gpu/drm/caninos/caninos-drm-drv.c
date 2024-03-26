@@ -308,8 +308,9 @@ static irqreturn_t caninos_drm_irq_handler(int irq, void *data)
 static void caninos_drm_unload(struct drm_device *drm)
 {
 	struct caninos_gfx *priv = container_of(drm, struct caninos_gfx, drm);
-	caninos_vdc_free_irq(priv->caninos_vdc, drm);
 	drm_kms_helper_poll_fini(drm);
+	caninos_vdc_free_irq(priv->caninos_vdc, drm);
+	drm->irq_enabled = false;
 }
 
 static int caninos_drm_load(struct drm_device *drm)
@@ -397,7 +398,8 @@ static int caninos_drm_load(struct drm_device *drm)
 	}
 	
 	drm_mode_config_reset(drm);
-	
+	drm->irq_enabled = true;
+	drm_kms_helper_poll_init(drm);
 	return 0;
 }
 
