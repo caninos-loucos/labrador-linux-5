@@ -42,7 +42,7 @@ static int adc_num = 2;
 
 struct codec_local_data
 {
-	struct atc260x_dev 	 *pmic;
+	struct atc260x_dev *pmic;
 	struct atc260x_audio *codec;
 	struct delayed_work dwork;
 	bool hw_init_flag;
@@ -127,12 +127,12 @@ static void reenable_audio_block(struct atc260x_audio *codec)
 
 static int atc2603c_dac_playback_mute(int mute)
 {
-	codec_update_bits(DAC_ANALOG1, 0x1<<10, 0x0);
-	
 	if (!mute) {
 		codec_update_bits(DAC_ANALOG1, 0x1<<10, 0x1<<10);
 	}
-	
+	else {
+		codec_update_bits(DAC_ANALOG1, 0x1<<10, 0x0);
+	}
 	return 0;
 } 
 

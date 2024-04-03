@@ -50,8 +50,6 @@ struct snd_caninos
 	phys_addr_t phys_base;
 };
 
-
-
 static void snd_caninos_set_rate(struct snd_caninos *chip)
 {
 	unsigned long reg_val;
@@ -117,7 +115,6 @@ static void snd_caninos_playback_capture_setup(struct snd_caninos *chip)
 	writel(readl(base + I2S_FIFOCTL) & ~(0x3 << 9) & ~0x3, base + I2S_FIFOCTL);
 	writel(readl(base + I2S_FIFOCTL) | (0x3 << 9) | 0x3, base + I2S_FIFOCTL);
 
-	
 	/* this should before enable rx/tx,
 	or after suspend, data may be corrupt */
 	writel(readl(base + I2S_CTL) & ~(0x3 << 11), base + I2S_CTL);
@@ -135,42 +132,6 @@ static void snd_caninos_playback_capture_setup(struct snd_caninos *chip)
 	
 	writel(0x0, base + I2STX_DAT);
 	writel(0x0, base + I2STX_DAT);
-} 
-
-static int caninos_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
-{
-	struct snd_caninos *chip = snd_pcm_chip(substream->pcm);
-	int err;
-	
-	switch (cmd)
-	{
-	case SNDRV_PCM_TRIGGER_START:
-	case SNDRV_PCM_TRIGGER_RESUME:
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-			chip->codec->dac_playback_mute(0);
-		}
-		break;
-		
-	case SNDRV_PCM_TRIGGER_STOP:
-	case SNDRV_PCM_TRIGGER_SUSPEND:
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-			chip->codec->dac_playback_mute(1);
-		}
-		break;
-	}
-	
-	err = snd_dmaengine_pcm_trigger(substream, cmd);
-	
-	if (err)
-	{
-		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-			chip->codec->dac_playback_mute(1);
-		}
-		pr_err("%s: snd_dmaengine_pcm_trigger returned %d\n", __func__, err);
-		return err;
-	}
-	
-	return 0;
 }
 
 static int caninos_pcm_hw_params
@@ -280,6 +241,9 @@ static int caninos_pcm_open(struct snd_pcm_substream *substream)
 		return err;
 	}
 	
+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+		chip->codec->dac_playback_mute(0);
+	}
 	return 0;
 }
 
@@ -288,13 +252,23 @@ static int caninos_pcm_prepare(struct snd_pcm_substream *substream)
 	return 0;
 }
 
+static int caninos_pcm_close(struct snd_pcm_substream *substream)
+{
+	struct snd_caninos *chip = snd_pcm_chip(substream->pcm);
+	
+	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+		chip->codec->dac_playback_mute(1);
+	}
+	return snd_dmaengine_pcm_close(substream);
+}
+
 static struct snd_pcm_ops caninos_pcm_ops = {
-	.open =	caninos_pcm_open,
-	.close = snd_dmaengine_pcm_close,
+	.open = caninos_pcm_open,
+	.close = caninos_pcm_close,
 	.ioctl = snd_pcm_lib_ioctl,
 	.hw_params = caninos_pcm_hw_params,
 	.hw_free = snd_pcm_lib_free_pages,
-	.trigger = caninos_pcm_trigger,
+	.trigger = snd_dmaengine_pcm_trigger,
 	.pointer = snd_dmaengine_pcm_pointer,
 	.prepare = caninos_pcm_prepare,
 };
