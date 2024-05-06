@@ -1,0 +1,46 @@
+#
+# FSK
+#
+
+menu "FSK Device Drivers"
+
+#
+# Alphabetically sorted.
+#
+
+config FSK_CC1120
+	tristate "TI CC1120 driver"
+	default y
+	depends on SPI
+	help
+	  TI CC1120
+
+config FSK_MRF89XA
+	tristate "Microchip MRF89XA driver"
+	default y
+	depends on SPI
+	help
+	  Microchip MRF89XA
+
+config FSK_NRF24L01P
+	tristate "Nordic nRF24L01+ driver"
+	default y
+	depends on SPI
+	help
+	  Nordic Semiconductor nRF24L01+
+
+config FSK_SI443X
+	tristate "SiLabs Si443x driver"
+	default y
+	depends on SPI
+	help
+	  Silicon Labs Si4432
+
+config FSK_S2LP
+	tristate "ST S2-LP driver"
+	default y
+	depends on SPI
+	help
+	  ST S2-LP
+
+endmenu

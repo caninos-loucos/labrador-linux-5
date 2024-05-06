@@ -1,0 +1,25 @@
+#
+# LoRaWAN
+#
+
+menu "LoRaWAN Device Drivers"
+
+#
+# Alphabetically sorted.
+#
+
+config LORAWAN_GMX_LR1
+	tristate "Gimasi GMX-LR1 driver"
+	default y
+	depends on SERIAL_DEV_BUS
+	help
+	  Gimasi GMX-LR1
+
+config LORAWAN_RM1XX
+	tristate "Laird RM1xx driver"
+	default y
+	depends on SERIAL_DEV_BUS
+	help
+	  Laird Technologies RM1xx
+
+endmenu

@@ -65,14 +65,14 @@
 		max-speed = <100000>;
 
 		cam_m8q: spi@0 {
-			compatible = "rohm,dh2228fv";
+			compatible = "linux,spidev";
 			reg = <0>;
 			// reset = <&exgpio 1 GPIO_ACTIVE_LOW>;
 			// int = <&gpiob 30 GPIO_ACTIVE_HIGH>;
 		};
 
 		sx1272: spi@1 {
-			compatible = "rohm,dh2228fv";
+			compatible = "caninos,sx1272";
 			reg = <1>;
 			// reset = <&exgpio 0 GPIO_ACTIVE_LOW>;
 			// dio0 = <&gpiob 11 GPIO_ACTIVE_HIGH>;

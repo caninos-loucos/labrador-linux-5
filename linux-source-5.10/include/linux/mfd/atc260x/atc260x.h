@@ -41,7 +41,12 @@ enum {
 	ATC260X_ICVER_H,
 };
 
-struct atc260x_dev;
+struct atc260x_dev
+{
+	struct device *dev;
+	struct regmap *regmap;
+	int ic_type;
+};
 
 extern int atc260x_reg_setbits(struct atc260x_dev *atc260x,
                                uint reg, u16 msk, u16 val);

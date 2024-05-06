@@ -267,4 +267,10 @@ obj-$(CONFIG_MFD_KHADAS_MCU) 	+= khadas-mcu.o
 obj-$(CONFIG_SGI_MFD_IOC3)	+= ioc3.o
 obj-$(CONFIG_MFD_SIMPLE_MFD_I2C)	+= simple-mfd-i2c.o
 obj-$(CONFIG_MFD_INTEL_M10_BMC)   += intel-m10-bmc.o
-obj-$(CONFIG_MFD_ATC260X) += atc260x/
+
+atc260x-objs	:= atc260x-core.o atc260x-i2c.o
+obj-$(CONFIG_MFD_ATC260X) 			+= atc260x.o
+obj-$(CONFIG_MFD_ATC260X_AUXADC)	+= atc260x-auxadc.o
+obj-$(CONFIG_MFD_ATC260X_BATTERY)	+= atc260x-battery.o
+obj-$(CONFIG_MFD_ATC260X_GPIO) 		+= atc260x-gpio.o
+

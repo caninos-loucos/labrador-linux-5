@@ -30,22 +30,25 @@
 
 	spi0: spi-gpio {
 		compatible = "spi-gpio";
-		miso-gpios = <&gpiod 25 GPIO_ACTIVE_HIGH>;
+		#address-cells = <0x1>;
+		ranges;
+
 		mosi-gpios = <&gpiod 24 GPIO_ACTIVE_HIGH>;
+		miso-gpios = <&gpiod 25 GPIO_ACTIVE_HIGH>;
 		sck-gpios  = <&gpioc 22 GPIO_ACTIVE_HIGH>;
-		cs-gpios   = <&gpioc 2  GPIO_ACTIVE_LOW>;
-		cs-num = <1>;
+		cs-gpios   = <&gpioc 2  GPIO_ACTIVE_LOW >;
+		
+		num-chipselects = <1>;
+		status = "okay";
 
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		max-speed = <100000>;
-
-		sx1272: spi@0 {
-			compatible = "rohm,dh2228fv";
+		lora@0 {
+			compatible = "caninos,sx1272-simple";
 			reg = <0>;
-			// reset = <&pmicgpio 4 GPIO_ACTIVE_LOW>;
-			// dio0 = <&gpiob 11 GPIO_ACTIVE_HIGH>;
+			reset-gpios = <&atc260x_gpio 4 GPIO_ACTIVE_HIGH>;
+			dio0-gpios = <&gpiob 11 GPIO_ACTIVE_HIGH>;
+			pa-boost;
+			xtal = <32000000>;
+			status = "okay";
 		};
 	};
 };

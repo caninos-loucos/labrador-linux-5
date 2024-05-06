@@ -71,9 +71,11 @@
 		};
 
 		sx1272: spi@1 {
-			compatible = "linux,spidev";
+			compatible = "semtech,sx1272";
 			reg = <1>;
-			// reset = <&exgpio 0 GPIO_ACTIVE_LOW>;
+			radio-frequency = <915000000>;
+			clock-frequency = <32000000>;
+			reset-gpio = <&exgpio 0 GPIO_ACTIVE_LOW>;
 			// dio0 = <&gpiob 11 GPIO_ACTIVE_HIGH>;
 		};
 	};

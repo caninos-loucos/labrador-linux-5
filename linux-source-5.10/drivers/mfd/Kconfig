@@ -168,8 +168,6 @@ config MFD_BD9571MWV
 	  This driver can also be built as a module. If so, the module
 	  will be called bd9571mwv.
 
-source "drivers/mfd/atc260x/Kconfig"
-
 config MFD_AC100
 	tristate "X-Powers AC100"
 	select MFD_CORE
@@ -178,7 +176,38 @@ config MFD_AC100
 	  If you say Y here you get support for the X-Powers AC100 audio codec
 	  IC.
 	  This driver include only the core APIs. You have to select individual
-	  components like codecs or RTC under the corresponding menus.
+	  components like codecs or RTC under the corresponding menus.  
+
+config MFD_ATC260X
+	bool "Actions ATC260x PMICs"
+	select MFD_CORE
+	select REGMAP_I2C
+	select REGMAP_IRQ
+	depends on I2C && OF
+	help
+	  Support for the Actions ATC260x PMICs
+	  This driver provides common support for accessing the device, additional 
+	  drivers must be enabled in order to use the functionality of the device.
+
+config MFD_ATC260X_AUXADC
+	bool "ATC260x PMICs Auxiliary ADC"
+	depends on MFD_ATC260X
+	help
+	  Support for reading the ATC260x PMICs auxiliary ADC inputs.
+
+config MFD_ATC260X_BATTERY
+	bool "ATC260x PMICs Battery Charging"
+	depends on MFD_ATC260X
+	help
+	  Support for ATC260x PMICs battery charging.
+
+config MFD_ATC260X_GPIO
+	bool "ATC260x PMICs GPIO"
+	depends on MFD_ATC260X
+	select GPIOLIB
+	select GPIOLIB_OF
+	help
+	  Support for ATC260x PMICs GPIO.
 
 config MFD_AXP20X
 	tristate

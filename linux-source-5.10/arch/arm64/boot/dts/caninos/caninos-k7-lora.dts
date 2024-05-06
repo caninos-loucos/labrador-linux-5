@@ -64,7 +64,7 @@
 		max-speed = <100000>;
 
 		sx1272: spi@0 {
-			compatible = "rohm,dh2228fv";
+			compatible = "caninos,sx1272";
 			reg = <0>;
 			// reset = <&pmicgpio 4 GPIO_ACTIVE_LOW>;
 			// dio0 = <&gpiob 11 GPIO_ACTIVE_HIGH>;

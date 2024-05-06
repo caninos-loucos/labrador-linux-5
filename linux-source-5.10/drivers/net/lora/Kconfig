@@ -1,0 +1,138 @@
+#
+# LoRa
+#
+
+menu "LoRa Device Drivers"
+
+config LORA_DEV
+	tristate "LoRa drivers"
+	default y
+	help
+	  LoRa ...
+	  If unsure, say Y.
+
+#
+# Alphabetically sorted.
+#
+
+if LORA_DEV
+
+config LORA_MIPOT_32001353
+	tristate "Mipot 32001353 driver"
+	default y
+	depends on SERIAL_DEV_BUS
+	help
+	  Mipot 32001353 LoRaWAN module
+
+config LORA_MM002
+	tristate "Nemeus MM002 driver"
+	default y
+	depends on SERIAL_DEV_BUS
+	help
+	  Nemeus MM002
+
+config LORA_RAK811
+	tristate "RAK RAK811 driver"
+	default y
+	depends on SERIAL_DEV_BUS
+	help
+	  RAK RAK811/RAK812
+
+config LORA_RF1276TS
+	tristate "Appcon Wireless RF1276TS driver"
+	default y
+	depends on SERIAL_DEV_BUS
+	help
+	  Appcon Wireless RF1276TS LoRaWAN
+
+config LORA_RN2483
+	tristate "Microchip RN2483/RN2903 driver"
+	default y
+	depends on SERIAL_DEV_BUS
+	help
+	  Microchip RN2483/2903
+
+config LORA_SX125X_CORE
+	tristate
+
+config LORA_SX125X
+	tristate "Semtech SX125x driver"
+	depends on SPI || LORA_SX130X
+	help
+	  Semtech SX1255/1257 driver
+
+config LORA_SX125X_SPI
+	bool "Semtech SX125x SPI driver"
+	default n
+	depends on LORA_SX125X
+	depends on SPI
+	select REGMAP_SPI
+	select LORA_SX125X_CORE
+	help
+	  Semtech SX1255/1257 SPI driver
+
+config LORA_SX125X_CON
+	bool "Semtech SX125x concentrator driver"
+	default y
+	depends on LORA_SX125X
+	depends on LORA_SX130X
+	select REGMAP
+	select LORA_SX125X_CORE
+	help
+	  Semtech SX1255/1257 concentrator driver
+
+config LORA_SX127X
+	tristate "Semtech SX127x SPI driver"
+	default y
+	depends on SPI
+	help
+	  Semtech SX1272/1276/1278
+
+config LORA_SX128X
+	tristate "Semtech SX128x driver"
+	default y
+	depends on SPI
+	help
+	  Semtech SX1280/1281
+
+config LORA_SX128X_SPI
+	bool "Semtech SX128x SPI driver"
+	default y
+	depends on LORA_SX128X
+	depends on SPI
+	help
+	  Semtech SX1280/1281 SPI driver
+
+config LORA_SX130X
+	tristate "Semtech SX130x SPI driver"
+	default y
+	depends on SPI
+	select REGMAP_SPI
+	help
+	  Semtech SX1301/1308
+
+config LORA_TING01M
+	tristate "Ting 01M driver"
+	default y
+	depends on SERIAL_DEV_BUS
+	help
+	  Himalaya HIMO-01M
+
+config LORA_USI
+	tristate "USI WM-SG-SM-42 driver"
+	default y
+	depends on SERIAL_DEV_BUS
+	help
+	  USI WM-SG-SM-42
+
+config LORA_WIMOD
+	tristate "IMST WiMOD driver"
+	default y
+	depends on SERIAL_DEV_BUS
+	select CRC_CCITT
+	help
+	  IMST WiMOD
+
+endif
+
+endmenu

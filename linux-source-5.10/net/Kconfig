@@ -67,6 +67,9 @@ source "net/xfrm/Kconfig"
 source "net/iucv/Kconfig"
 source "net/smc/Kconfig"
 source "net/xdp/Kconfig"
+source "net/lora/Kconfig"
+source "net/lorawan/Kconfig"
+source "net/fsk/Kconfig"
 
 config INET
 	bool "TCP/IP networking"
