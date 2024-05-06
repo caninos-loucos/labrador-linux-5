@@ -38,19 +38,6 @@ int atc260x_reg_setbits(struct atc260x_dev *atc260x,
 }
 EXPORT_SYMBOL(atc260x_reg_setbits);
 
-int atc260x_reg_setbits(struct atc260x_dev *atc260x,
-                        uint reg, u16 msk, u16 val)
-{
-	if (!atc260x) {
-		return -EINVAL;
-	}
-	if (!atc260x->dev || !atc260x->regmap) {
-		return -EINVAL;
-	}
-	return regmap_update_bits(atc260x->regmap, reg, msk, val);
-}
-EXPORT_SYMBOL(atc260x_reg_setbits);
-
 int atc260x_reg_read(struct atc260x_dev *atc260x, uint reg)
 {
 	uint data = -EINVAL;

@@ -592,4 +592,10 @@ config NET_FAILOVER
 	  a VM with direct attached VF by failing over to the paravirtual
 	  datapath when the VF is unplugged.
 
+config LORA
+	tristate "Lora Networking support"
+
+config LORAWAN
+	tristate "LoRaWAN networking support"
+
 endif # NETDEVICES
