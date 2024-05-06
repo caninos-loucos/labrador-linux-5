@@ -28,7 +28,7 @@
 &emac {
 	phy-mode = "rmii";
 	max-speed = <100>;
-
+	
 	phy-power-gpio = <&gpiob 11 GPIO_ACTIVE_HIGH>;
 	phy-reset-gpio = <&gpiod 31 GPIO_ACTIVE_HIGH>;
 };

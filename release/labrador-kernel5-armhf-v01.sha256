@@ -2,6 +2,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 ed92ea29a1b60b94030417beed424d38c6173bfa76177619bf372052771dffe6  labrador-kernel5-armhf-v01.tar.gz
 =======
 085c8925dc7462a7837fc1954d4988d63d786fa2a1210beff0974c52393812e6  labrador-kernel5-armhf-v01.tar.gz
@@ -15,3 +16,6 @@ ed92ea29a1b60b94030417beed424d38c6173bfa76177619bf372052771dffe6  labrador-kerne
 =======
 1838ea46f6708efd2c21c33d6ba3baa5187c0f87385535323d6baacfeba6d181  labrador-kernel5-armhf-v01.tar.gz
 >>>>>>> 69d96250d (Added vsync support to caninos-drm.)
+=======
+350bb15ffc556cd7f2a6520291928baa6d6e779b0b535501d5253189a539d173  labrador-kernel5-armhf-v01.tar.gz
+>>>>>>> caninos/main
