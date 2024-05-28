@@ -915,7 +915,7 @@ static void sx127x_tx_work(struct work_struct *work)
 	struct spi_device* spi  = data->spidevice;
 	while(1)
 	{
-		if (counter > 100) {
+		if (counter > 10000) {
 			data->tx_err = -ETIMEDOUT;
 			dev_info(data->chardevice, "TX error: %d \n", data->tx_err);
 			data->transmitted = 1;
@@ -933,12 +933,13 @@ static void sx127x_tx_work(struct work_struct *work)
 			wake_up(&data->writewq);
 			return;
 		}
-		else if (!ret){
+		else if (ret){
 			if(irqflags & SX127X_REG_LORA_IRQFLAGS_TXDONE) {
 				if(data->gpio_txen)
 					gpiod_set_value(data->gpio_txen, 0);			
 				dev_info(data->chardevice, "transmitted packet\n");
 				data->transmitted = 1;
+				sx127x_reg_write(data->spidevice, SX127X_REG_LORA_IRQFLAGS, 0xff);
 				wake_up(&data->writewq);
 				return;
 			}
